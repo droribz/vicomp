@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO Primary -->
+  <title>VICOMP | מומחים במערכות קירור תעשייתיות וקירור CO2</title>
+  <meta name="description" content="VICOMP – שירות טכני מוביל להתקנה ואחזקה של מערכות קירור תעשייתיות ובתי קירור. התמחות במערכות קירור CO2. מעניקים שירות לרשתות המובילות בישראל." />
+  <meta name="keywords" content="קירור תעשייתי, מערכות קירור CO2, בתי קירור, אחזקת קירור, התקנת מערכות קירור, VICOMP, שירות קירור, מחסני קירור, קירור מסחרי" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://vicomp.co.il/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://vicomp.co.il/" />
+  <meta property="og:title" content="VICOMP | מומחים במערכות קירור תעשייתיות" />
+  <meta property="og:description" content="התקנה ואחזקה של מערכות קירור תעשייתיות ובתי קירור. התמחות במערכות CO2. שירות מקצועי לרשתות מסחריות." />
+  <meta property="og:locale" content="he_IL" />
+  <meta property="og:site_name" content="VICOMP" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "VICOMP",
+    "description": "שירות טכני להתקנה ואחזקה של מערכות קירור תעשייתיות ובתי קירור. התמחות במערכות קירור CO2.",
+    "url": "https://vicomp.co.il",
+    "telephone": "054-750-4781",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "IL"
+    },
+    "serviceType": ["Industrial Refrigeration", "CO2 Cooling Systems", "Cold Storage Maintenance"],
+    "areaServed": "Israel",
+    "knowsAbout": ["מערכות קירור CO2", "בתי קירור", "קירור תעשייתי", "אחזקת מערכות קירור"],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "שירותי VICOMP",
+      "itemListElement": [
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "התקנת מערכות קירור תעשייתיות"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "אחזקה שוטפת של מערכות קירור"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "התמחות במערכות קירור CO2"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "שירות חירום"}}
+      ]
+    }
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0D1F3C;
+      --navy2:   #122347;
+      --orange:  #D4722A;
+      --orange2: #E8834A;
+      --light:   #F5F7FA;
+      --white:   #FFFFFF;
+      --gray:    #6B7280;
+      --border:  #E2E8F0;
+      --radius:  12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: var(--white);
+      color: var(--navy);
+      direction: rtl;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAVBAR ─── */
+    nav {
+      position: fixed;
+      top: 0; right: 0; left: 0;
+      z-index: 100;
+      background: rgba(13, 31, 60, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 5%;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo svg { height: 44px; width: auto; }
+
+    .nav-cta {
+      background: var(--orange);
+      color: var(--white);
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .nav-cta:hover { background: var(--orange2); }
+
+    /* ─── HERO ─── */
+    #hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a6e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 5% 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: -120px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(212,114,42,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(26,58,110,0.5) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-logo { margin-bottom: 36px; }
+    .hero-logo svg { height: 80px; width: auto; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.3)); }
+
+    #hero h1 {
+      color: var(--white);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    #hero h1 span { color: var(--orange2); }
+
+    #hero p.subtitle {
+      color: rgba(255,255,255,0.75);
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      font-weight: 400;
+      max-width: 640px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--orange);
+      color: var(--white);
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 20px rgba(212,114,42,0.35);
+    }
+    .btn-primary:hover { background: var(--orange2); transform: translateY(-2px); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      color: var(--white);
+      padding: 15px 32px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+    .hero-badge {
+      margin-top: 56px;
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .badge-item {
+      color: rgba(255,255,255,0.65);
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-item::before {
+      content: '';
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--orange2);
+      border-radius: 50%;
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 96px 5%; }
+    .section-tag {
+      display: inline-block;
+      background: rgba(212,114,42,0.12);
+      color: var(--orange);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+    .section-title span { color: var(--orange); }
+    .section-sub {
+      color: var(--gray);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 560px;
+    }
+    .section-header { margin-bottom: 56px; }
+
+    /* ─── SERVICES ─── */
+    #services { background: var(--light); }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .service-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: box-shadow 0.25s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0; left: 0;
+      height: 3px;
+      background: var(--orange);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s;
+    }
+    .service-card:hover { box-shadow: 0 8px 32px rgba(13,31,60,0.1); transform: translateY(-4px); }
+    .service-card:hover::after { transform: scaleX(1); }
+
+    .service-icon {
+      width: 52px; height: 52px;
+      background: rgba(212,114,42,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .service-icon svg { width: 26px; height: 26px; stroke: var(--orange); fill: none; stroke-width: 1.8; }
+
+    .service-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+    .service-card p {
+      font-size: 0.95rem;
+      color: var(--gray);
+      line-height: 1.65;
+    }
+
+    /* ─── ABOUT ─── */
+    #about { background: var(--white); }
+    .about-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .about-inner { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    .about-text .section-header { margin-bottom: 28px; }
+    .about-text p {
+      color: var(--gray);
+      font-size: 1rem;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .stat-box {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 28px 22px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .stat-box .num {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--navy);
+      display: block;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-box .num span { color: var(--orange); }
+    .stat-box .label {
+      font-size: 0.88rem;
+      color: var(--gray);
+      font-weight: 500;
+    }
+
+    /* ─── CLIENTS ─── */
+    #clients { background: var(--navy); }
+    #clients .section-tag { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+    #clients .section-title { color: var(--white); }
+    #clients .section-sub { color: rgba(255,255,255,0.6); }
+
+    .clients-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .client-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .client-card:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(212,114,42,0.4);
+    }
+    .client-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .client-card h4 {
+      color: var(--white);
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .client-card p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.82rem;
+    }
+
+    /* ─── CONTACT ─── */
+    #contact {
+      background: linear-gradient(135deg, var(--light) 0%, #EEF2FF 100%);
+      text-align: center;
+    }
+    #contact .section-sub { margin: 0 auto 44px; }
+
+    .contact-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .contact-card {
+      flex: 1;
+      min-width: 220px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-decoration: none;
+      color: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: box-shadow 0.2s, transform 0.2s;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .contact-card:hover { box-shadow: 0 8px 28px rgba(13,31,60,0.12); transform: translateY(-4px); }
+
+    .contact-card .icon-wrap {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .icon-phone { background: rgba(13,31,60,0.08); }
+    .icon-wa    { background: rgba(37,211,102,0.12); }
+
+    .contact-card strong {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .contact-card span {
+      font-size: 0.88rem;
+      color: var(--gray);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 28px 5%;
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    footer strong { color: rgba(255,255,255,0.8); }
+
+    /* ─── DIVIDER ─── */
+    .divider { width: 56px; height: 4px; background: var(--orange); border-radius: 2px; margin-bottom: 20px; }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 600px) {
+      nav { padding: 0 4%; }
+      .hero-btns { flex-direction: column; align-items: center; }
+      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .contact-cards { flex-direction: column; }
+      .contact-card { min-width: unset; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     NAVBAR
+════════════════════════════════ -->
+<nav>
+  <a href="#hero" class="nav-logo" aria-label="VICOMP">
+    <!-- Logo SVG -->
+    <svg viewBox="0 0 220 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M10,48 C10,30 30,15 60,18 C85,20 105,30 120,28 C140,25 160,10 185,20 C205,28 210,45 190,55 C175,62 155,58 135,60 C115,62 100,72 80,75 C55,78 10,68 10,48 Z"
+            fill="#D4722A" opacity="0.9"/>
+      <path d="M35,60 C35,45 55,35 80,38 C105,41 125,55 145,55 C165,55 185,45 205,55 C220,63 215,78 195,82 C175,86 155,78 130,80 C105,82 85,92 65,90 C42,87 35,74 35,60 Z"
+            fill="#1B4EA8" opacity="0.92"/>
+      <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle"
+            font-family="'Rubik',sans-serif" font-size="32" font-weight="800"
+            fill="white" letter-spacing="2"
+            style="paint-order:stroke; stroke:#0D1F3C; stroke-width:3">VICOMP</text>
+    </svg>
+  </a>
+  <a href="#contact" class="nav-cta">צור קשר עכשיו</a>
+</nav>
+
+
+<!-- ═══════════════════════════════
+     HERO
+════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-logo">
+    <svg viewBox="0 0 280 130" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="VICOMP logo">
+      <path d="M10,58 C10,35 35,16 72,20 C105,23 130,37 155,34 C178,31 200,12 228,24 C252,34 258,56 232,70 C212,80 186,74 160,77 C134,80 115,93 90,97 C60,101 10,83 10,58 Z"
+            fill="#D4722A" opacity="0.92"/>
+      <path d="M42,74 C42,55 68,42 98,46 C128,50 152,67 176,67 C200,67 222,55 246,67 C265,76 260,95 236,100 C212,105 186,95 155,97 C124,100 100,114 75,111 C46,107 42,90 42,74 Z"
+            fill="#1B4EA8" opacity="0.94"/>
+      <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle"
+            font-family="'Rubik',sans-serif" font-size="44" font-weight="800"
+            fill="white" letter-spacing="3"
+            style="paint-order:stroke; stroke:rgba(0,0,0,0.4); stroke-width:4">VICOMP</text>
+    </svg>
+  </div>
+
+  <h1>מומחים ב<span>מערכות קירור<br>תעשייתיות</span></h1>
+  <p class="subtitle">
+    התקנה ואחזקה מקצועית של מערכות קירור בבתי קירור ומחסני קירור — עם התמחות מיוחדת במערכות קירור CO₂ מתקדמות.
+  </p>
+
+  <div class="hero-btns">
+    <a href="https://wa.me/9720547504781?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A2%D7%95%D7%A0%D7%99%D7%99%D7%9F%20%D7%91%D7%A9%D7%99%D7%A8%D7%95%D7%AA%D7%99%20VICOMP"
+       class="btn-primary" id="wa-hero"
+       aria-label="שלח הודעת WhatsApp">
+      <!-- WhatsApp icon -->
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      WhatsApp
+    </a>
+    <a href="tel:054-750-4781" class="btn-secondary" id="phone-hero" aria-label="התקשר אלינו">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.6 19.79 19.79 0 01.07 2 2 2 0 012.03 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+      </svg>
+      התקשרו אלינו
+    </a>
+  </div>
+
+  <div class="hero-badge">
+    <span class="badge-item">מערכות CO₂</span>
+    <span class="badge-item">בתי קירור ומחסנים</span>
+    <span class="badge-item">שירות ארצי</span>
+    <span class="badge-item">זמינות גבוהה</span>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     SERVICES
+════════════════════════════════ -->
+<section id="services">
+  <div class="section-header">
+    <div class="section-tag">השירותים שלנו</div>
+    <div class="divider"></div>
+    <h2 class="section-title">פתרונות קירור <span>מקצועיים ומקיפים</span></h2>
+    <p class="section-sub">אנו מספקים מגוון שירותים טכניים מתקדמים עבור מערכות קירור תעשייתיות — מהתכנון ועד התחזוקה השוטפת.</p>
+  </div>
+
+  <div class="services-grid">
+
+    <article class="service-card">
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3 2-2 3 3"/></svg>
+      </div>
+      <h3>התקנת מערכות קירור</h3>
+      <p>התקנה מקצועית ומדויקת של מערכות קירור תעשייתיות בבתי קירור, מחסנים ומרכזי הפצה — לפי הסטנדרטים הגבוהים ביותר.</p>
+    </article>
+
+    <article class="service-card">
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      </div>
+      <h3>אחזקה שוטפת ומניעתית</h3>
+      <p>תוכניות אחזקה מותאמות לכל מערכת — כדי להבטיח פעולה רציפה, מניעת תקלות ושמירה על יעילות אנרגטית מיטבית.</p>
+    </article>
+
+    <article class="service-card">
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 8v4l2 2"/><path d="M8 3.5C6 5 4.5 7.5 4.5 10.5"/></svg>
+      </div>
+      <h3>התמחות במערכות CO₂</h3>
+      <p>מומחיות ייחודית בהתקנה ואחזקה של מערכות קירור CO₂ — הטכנולוגיה המתקדמת, הירוקה והיעילה ביותר לקירור מסחרי ותעשייתי.</p>
+    </article>
+
+    <article class="service-card">
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <h3>בתי קירור ומחסנים</h3>
+      <p>פתרונות קירור מותאמים לבתי קירור, מחסני קירור ומרכזי לוגיסטיקה קרה — שמירה על טמפרטורות מדויקות בכל עת.</p>
+    </article>
+
+    <article class="service-card">
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h3>שירות חירום ותגובה מהירה</h3>
+      <p>זמינות גבוהה לתגובה מהירה בכל מקרה חירום — מכיוון שאנו מבינים שהפסקת קירור היא אירוע קריטי שלא יכול להמתין.</p>
+    </article>
+
+    <article class="service-card">
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <h3>שדרוג ומיגרציה</h3>
+      <p>שדרוג מערכות קירור ישנות לטכנולוגיות חדשות ויעילות — כולל מעבר למערכות CO₂ ידידותיות לסביבה עם חיסכון משמעותי בעלויות.</p>
+    </article>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     ABOUT
+════════════════════════════════ -->
+<section id="about">
+  <div class="about-inner">
+    <div class="about-text">
+      <div class="section-header">
+        <div class="section-tag">מי אנחנו</div>
+        <div class="divider"></div>
+        <h2 class="section-title">ניסיון, <span>מומחיות</span> ואמינות</h2>
+      </div>
+      <p>
+        VICOMP היא חברה המתמחה בשירותים טכניים מקצועיים למערכות קירור תעשייתיות. עם ניסיון עשיר בתחום, אנו מעניקים שירות ללקוחות המובילים במשק הישראלי.
+      </p>
+      <p>
+        ההתמחות המיוחדת שלנו במערכות קירור CO₂ מציבה אותנו בחזית הטכנולוגיה — ומאפשרת לנו להציע ללקוחותינו פתרונות חדשניים, יעילים ואחראים לסביבה.
+      </p>
+      <p>
+        אנו מתחייבים לזמינות מלאה, מקצועיות ויחס אישי לכל לקוח — בין אם מדובר בהתקנה חדשה, אחזקה שוטפת או תגובה דחופה לתקלה.
+      </p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <span class="num">CO<span>₂</span></span>
+        <span class="label">התמחות ייחודית במערכות CO₂</span>
+      </div>
+      <div class="stat-box">
+        <span class="num">24<span>/7</span></span>
+        <span class="label">זמינות לשירות חירום</span>
+      </div>
+      <div class="stat-box">
+        <span class="num">4<span>+</span></span>
+        <span class="label">רשתות מובילות כלקוחות</span>
+      </div>
+      <div class="stat-box">
+        <span class="num">100<span>%</span></span>
+        <span class="label">מחויבות לאיכות השירות</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     CLIENTS
+════════════════════════════════ -->
+<section id="clients">
+  <div class="section-header">
+    <div class="section-tag">לקוחות מובילים</div>
+    <div class="divider"></div>
+    <h2 class="section-title">סומכים עלינו</h2>
+    <p class="section-sub">אנו גאים לשרת את הרשתות והחברות המובילות בישראל.</p>
+  </div>
+
+  <div class="clients-grid">
+    <div class="client-card">
+      <span class="client-icon">🛒</span>
+      <h4>קרפור</h4>
+      <p>רשת סופרמרקטים</p>
+    </div>
+    <div class="client-card">
+      <span class="client-icon">🏪</span>
+      <h4>קרפרי</h4>
+      <p>רשת קמעונאות</p>
+    </div>
+    <div class="client-card">
+      <span class="client-icon">🏭</span>
+      <h4>מגלד</h4>
+      <p>מחסני קירור</p>
+    </div>
+    <div class="client-card">
+      <span class="client-icon">❄️</span>
+      <h4>פלטק</h4>
+      <p>מערכות מיזוג אוויר</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     CONTACT
+════════════════════════════════ -->
+<section id="contact">
+  <div class="section-tag">צרו קשר</div>
+  <div class="divider" style="margin: 14px auto 20px;"></div>
+  <h2 class="section-title">מוכנים לעזור לכם</h2>
+  <p class="section-sub">
+    צרו איתנו קשר עוד היום לקבלת ייעוץ, הצעת מחיר, או שירות חירום.
+    אנו זמינים ומוכנים לסייע בכל עניין הנוגע למערכות הקירור שלכם.
+  </p>
+
+  <div class="contact-cards">
+    <a href="https://wa.me/9720547504781?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A0%D7%99%20%D7%9E%D7%A2%D7%95%D7%A0%D7%99%D7%99%D7%9F%20%D7%91%D7%A9%D7%99%D7%A8%D7%95%D7%AA%D7%99%20VICOMP"
+       class="contact-card" id="wa-contact">
+      <div class="icon-wrap icon-wa">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </div>
+      <strong>WhatsApp</strong>
+      <span>כתבו לנו בוואטסאפ</span>
+    </a>
+
+    <a href="tel:054-750-4781" class="contact-card" id="phone-contact">
+      <div class="icon-wrap icon-phone">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.6 19.79 19.79 0 01.07 2 2 2 0 012.03 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+        </svg>
+      </div>
+      <strong>054-750-4781</strong>
+      <span>התקשרו אלינו</span>
+    </a>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     FOOTER
+════════════════════════════════ -->
+<footer>
+  <p><strong>VICOMP</strong> — מומחים במערכות קירור תעשייתיות &nbsp;|&nbsp; התקנה, אחזקה ומערכות CO₂ &nbsp;|&nbsp; © 2025</p>
+</footer>
+
+</body>
+</html>
