@@ -3,33 +3,38 @@
 #  כל מקור = מתאם (adapter) ב-infra_tenders/adapters/<name>.py.
 #  הוספת מקור חדש = הוספת מתאם + רשומה כאן. הליבה לא משתנה.
 #
+#  הכתובות אומתו ב-WebSearch (יוני 2026) — ראה docs/SOURCES.md לפירוט מלא
+#  (טכנולוגיית האתר, האם דורש התחברות, סבירות לחוברת בתשלום).
+#  עדיין יש לאמת בזמן ריצה — אתרים משתנים.
+#
 #  שדות:
-#    name          מזהה קצר (משמש ב---source <name>). חייב להתאים לשם המתאם.
-#    publisher     שם המפרסם בעברית (משמש בשמות תיקיות וב-report).
-#    enabled       האם לכלול ב---all.
+#    name            מזהה קצר (משמש ב---source <name>). תואם לשם המתאם.
+#    publisher       שם המפרסם בעברית (משמש בשמות תיקיות וב-report).
+#    enabled         האם לכלול ב---all.
 #    requires_login  האם דורש אישורי גישה מ-.env.
-#    urls          כתובות עמוד המכרזים (אַמת בזמן ריצה; אתרים משתנים).
-#    notes         הערות.
+#    urls            כתובות עמוד המכרזים.
+#    notes           הערות (טכנולוגיה / תשלום / מצב מימוש).
 # ============================================================================
 
 sources:
+  # === ממומש ====================================================================
   - name: iroads
     publisher: "נתיבי ישראל"
     enabled: true
     requires_login: false
     urls:
       - "https://www.iroads.co.il/מכרזים/מכרזים/"
-      - "https://tender.iroads.co.il/"   # מערכת מכרזים ייעודית
-    notes: "מתאם ראשון — אתר עשיר ומובנה. פילטר סטטוס פתוח/סגור."
+      - "https://tender.iroads.co.il/"
+    notes: "ממומש. אתר עשיר; מערכת מכרזים ייעודית ב-tender.iroads.co.il."
 
-  # --- מקורות נוספים: יתווספו מתאם-מתאם לאחר אישור המתאם הראשון ----------
+  # === מאומת, טרם מומש (מתאם בקרוב) =============================================
   - name: nta
     publisher: "נת\"ע"
     enabled: false
     requires_login: false
     urls:
       - "https://www.nta.co.il/tenders/"
-    notes: "טרם מומש."
+    notes: "מאומת. רכבת קלה גוש דן — תשתיות מובהקות."
 
   - name: transisrael
     publisher: "חוצה ישראל"
@@ -37,15 +42,16 @@ sources:
     requires_login: false
     urls:
       - "https://www.transisrael.co.il/Tenders"
-    notes: "טרם מומש."
+    notes: "מאומת. ?currentView=1 = החלטות ועדת מכרזים בפטור."
 
   - name: rail
     publisher: "רכבת ישראל"
     enabled: false
     requires_login: false
     urls:
-      - "https://www.rail.co.il"
-    notes: "טרם מומש. לאתר את עמוד המכרזים הראשי (לא מטענים)."
+      - "https://tender.rail.co.il/"
+      - "https://www.rail.co.il/cargotenders/pages/cargotender.aspx"
+    notes: "מאומת. tender.rail.co.il = מערכת מכרזים כללית (לא רק מטענים)."
 
   - name: ingl
     publisher: "נתיבי הגז"
@@ -53,23 +59,26 @@ sources:
     requires_login: false
     urls:
       - "https://www.ingl.co.il/tenders/"
-    notes: "טרם מומש."
+    notes: "מאומת. הולכת גז טבעי — הורדת מסמכים מלשונית Tenders."
 
-  - name: mrgov
-    publisher: "מינהל הרכש הממשלתי"
-    enabled: false
-    requires_login: true
-    urls:
-      - "https://mr.gov.il/ilgstorefront/he/"
-    notes: "דורש התחברות (MRGOV_USERNAME/MRGOV_PASSWORD ב-.env). טרם מומש."
-
-  - name: jobiz
-    publisher: "jobiz (אגרגטור ממשלתי)"
+  - name: yefenof
+    publisher: "יפה נוף"
     enabled: false
     requires_login: false
     urls:
-      - "https://jobiz.gov.il"
-    notes: "אגרגטור — משמש לאיחוד מקורות. טרם מומש."
+      - "https://www.yefenof.co.il/tenders"
+    notes: >-
+      מאומת ומבנה נקי במיוחד: עמוד מכרז /Tender?tenderID=NNNN,
+      קבצים תחת /Uploads/tenderDocuments/. מועמד מצוין למתאם השני.
+
+  - name: moriah
+    publisher: "מוריה - פיתוח ירושלים"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.moriah.co.il/suppliers/"
+      - "https://www.moriah.co.il/tender_cat/מכרזים/"
+    notes: "מאומת (WordPress). תשתיות/סלילה/רק\"ל בירושלים. ייתכנו חוברות בתשלום."
 
   - name: ayalon
     publisher: "נתיבי איילון"
@@ -77,4 +86,72 @@ sources:
     requires_login: false
     urls:
       - "https://www.ayalonhw.co.il/tenders/tenders-lobby/"
-    notes: "טרם מומש."
+    notes: "מאומת."
+
+  - name: iec
+    publisher: "חברת החשמל"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.iec.co.il/content/suppliers/tenders-and-decisions/tenders"
+    notes: "מאומת. ⚠ ייתכן חסום לגישה מחוץ לישראל (geo). קווי מתח/תשתית חשמל."
+
+  - name: mekorot
+    publisher: "מקורות"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.mekorot.co.il/מכרזים/"
+    notes: "מאומת (WordPress). מים/קווי מים/מתקני טיהור. נפוצות חוברות בתשלום."
+
+  - name: ashdodport
+    publisher: "נמל אשדוד"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.ashdodport.co.il/about/opportunities/pages/tenders.aspx"
+    notes: "מאומת (SharePoint .aspx). רציפים/שוברי גלים/תשתית נמל."
+
+  - name: haifaport
+    publisher: "נמל חיפה"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.haifaport.co.il/tenders/"
+    notes: "מאומת (.aspx)."
+
+  - name: israports
+    publisher: "חברת נמלי ישראל"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://israports.co.il/he/Pages/default.aspx"
+    notes: "מאומת. גוף הפיתוח של הנמלים — לאתר עמוד מכרזים פנימי בזמן ריצה."
+
+  # === דורש התחברות (חינם) ======================================================
+  - name: mrgov
+    publisher: "מינהל הרכש הממשלתי"
+    enabled: false
+    requires_login: true
+    urls:
+      - "https://mr.gov.il/ilgstorefront/he/search/"
+    notes: >-
+      מאומת. הורדת מסמכים חינם לאחר הרשמה. מלא MRGOV_USERNAME/PASSWORD ב-.env.
+      ייתכן שדפדוף בסיסי אפשרי גם ללא התחברות — לבדוק בזמן מימוש.
+
+  # === אגרגטור (לאיחוד מקורות) ==================================================
+  - name: jobiz
+    publisher: "jobiz (אגרגטור ממשלתי)"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://jobiz.gov.il/tenders"
+    notes: "מאומת. אגרגטור חינמי — מנצח רק כשאין מקור ישיר (ראה dedup)."
+
+  # === תאגידי מים אזוריים =======================================================
+  # רבים ומבוזרים; נפוצות חוברות בתשלום. דוגמאות מאומתות לפיתוח עתידי:
+  #   מי אביבים   https://www.mei-avivim.co.il/
+  #   מניב ראשון  https://www.meniv-rishon.co.il/
+  #   מי שיקמה    https://mei-shikma.co.il/
+  #   מי רמת גן   https://www.mei-rg.co.il/
+  # מומלץ מתאם גנרי אחד מבוסס-config שמקבל רשימת תאגידים, בשלב מאוחר יותר.

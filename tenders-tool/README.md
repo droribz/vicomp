@@ -102,16 +102,34 @@ tenders/
 
 ## הוספת מקור חדש (ארכיטקטורת מתאמים)
 
-כל מקור הוא **מתאם (adapter)** עם ממשק אחיד. הוספת מקור = הוספת מתאם בלבד,
-בלי לגעת בליבה:
+כל מקור הוא **מתאם (adapter)** עם ממשק אחיד. הודות לתשתית הגנרית
+(`infra_tenders/adapters/generic.py`), רוב המקורות הם **קונפיגורציה בלבד** —
+מורשים מ-`GenericAdapter` שכבר יודע לרנדר עם Playwright, לפענח רשימה/קבצים,
+לזהות חסימה ולסנן מועדים:
 
-1. צור `infra_tenders/adapters/<name>.py` עם מחלקה היורשת מ-`BaseAdapter`
-   ומממשת `fetch_open_tenders(self, page, client) -> list[Tender]`.
+```python
+# infra_tenders/adapters/yefenof.py
+from .generic import GenericAdapter
+
+class YefenofAdapter(GenericAdapter):
+    name = "yefenof"
+    publisher = "יפה נוף"
+    # אם ברירות המחדל לא תופסות את מבנה האתר, דורסים סלקטורים:
+    # ROW_SELECTORS = ["div.tender"]
+    # FOLLOW_DETAIL = True   # להיכנס לעמוד המכרז לאיסוף קבצים
+```
+
+שלבים:
+1. צור `infra_tenders/adapters/<name>.py` עם תת-מחלקה של `GenericAdapter`
+   (או של `BaseAdapter` אם האתר מיוחד — למשל דורש התחברות).
 2. רשום אותה ב-`infra_tenders/adapters/__init__.py` (במילון `ADAPTERS`).
-3. הוסף רשומה ב-`config/sources.yaml` (עם `enabled: true`).
+3. הוסף/הפעל רשומה ב-`config/sources.yaml` (`enabled: true`).
 
 המתאם אחראי רק על *גילוי* המכרסים והקבצים. הליבה מטפלת בפילטור, איחוד
 כפילויות, גרסאות, ארכוב, הורדה, אינדקס ודוח.
+
+רשימת כל המקורות שאומתו (כתובות, טכנולוגיה, התחברות, תשלום) נמצאת ב-
+[`docs/SOURCES.md`](docs/SOURCES.md).
 
 ---
 
