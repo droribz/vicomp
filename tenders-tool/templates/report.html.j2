@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>מכרזי תשתיות — דוח סריקה {{ run_day }}</title>
+  <style>
+    :root { --new:#1a7f37; --paid:#b45309; --soon:#b91c1c; --line:#e2e8f0; }
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; background:#f8fafc;
+           color:#0f172a; line-height:1.5; }
+    header { background:#0f172a; color:#fff; padding:18px 16px; }
+    header h1 { margin:0 0 4px; font-size:20px; }
+    header .meta { font-size:13px; opacity:.85; }
+    .summary { display:flex; flex-wrap:wrap; gap:10px; padding:14px 16px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:10px;
+            padding:10px 14px; min-width:120px; }
+    .card .num { font-size:22px; font-weight:700; }
+    .card .lbl { font-size:12px; color:#64748b; }
+    .legend { padding:0 16px 8px; font-size:12px; color:#475569; }
+    .badge { display:inline-block; padding:1px 8px; border-radius:999px;
+             font-size:11px; font-weight:600; }
+    .b-new { background:#dcfce7; color:var(--new); }
+    .b-paid { background:#fef3c7; color:var(--paid); }
+    .b-soon { background:#fee2e2; color:var(--soon); }
+    .b-low { background:#e2e8f0; color:#475569; }
+    .wrap { padding:0 16px 40px; }
+    table { width:100%; border-collapse:collapse; background:#fff;
+            border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+    th, td { text-align:right; padding:10px 12px; border-bottom:1px solid var(--line);
+             font-size:14px; vertical-align:top; }
+    th { background:#f1f5f9; font-size:12px; color:#475569; position:sticky; top:0; }
+    tr.new td { background:#f0fdf4; }
+    tr.soon td.deadline { color:var(--soon); font-weight:700; }
+    a { color:#2563eb; text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .title { font-weight:600; }
+    .src { font-size:12px; color:#64748b; }
+    @media (max-width:680px) {
+      table, thead, tbody, th, td, tr { display:block; }
+      thead { display:none; }
+      tr { border:1px solid var(--line); border-radius:10px; margin-bottom:10px;
+           padding:6px; background:#fff; }
+      td { border:none; padding:4px 8px; }
+      td::before { content:attr(data-label) ": "; font-weight:600; color:#64748b; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>מכרזי תשתיות — מכרזים פתוחים</h1>
+    <div class="meta">תאריך סריקה: {{ run_day }} · מוצג ממוין לפי מועד הגשה (הקרוב ביותר למעלה)</div>
+  </header>
+
+  <section class="summary">
+    <div class="card"><div class="num">{{ summary.total }}</div><div class="lbl">מכרזים פתוחים</div></div>
+    <div class="card"><div class="num">{{ summary.new }}</div><div class="lbl">חדשים בהרצה זו</div></div>
+    <div class="card"><div class="num">{{ summary.paid }}</div><div class="lbl">בתשלום / חלקי</div></div>
+    <div class="card"><div class="num">{{ summary.low }}</div><div class="lbl">לבדיקה ידנית (low)</div></div>
+  </section>
+
+  <div class="legend">
+    <span class="badge b-new">חדש</span> חדש מאז ההרצה הקודמת ·
+    <span class="badge b-soon">מתקרב</span> מועד הגשה בתוך {{ approaching_days }} ימים ·
+    <span class="badge b-paid">בתשלום</span> חוברת בתשלום (הורד רק החינמי) ·
+    <span class="badge b-low">low</span> התאמה לא ודאית — לבדוק ידנית
+  </div>
+
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>מועד הגשה</th><th>כותרת</th><th>מפרסם</th><th>מס' מכרז</th>
+          <th>סטטוס</th><th>קישורים</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tenders %}
+        <tr class="{{ 'new' if t.is_new }} {{ 'soon' if t.approaching }}">
+          <td class="deadline" data-label="מועד הגשה">
+            {{ t.row.submission_deadline or '—' }}
+            {% if t.days_left is not none and t.days_left >= 0 %}
+              <div class="src">בעוד {{ t.days_left }} ימים</div>
+            {% endif %}
+          </td>
+          <td data-label="כותרת">
+            <span class="title">{{ t.row.title }}</span>
+            {% if t.is_new %}<span class="badge b-new">חדש</span>{% endif %}
+            {% if t.approaching %}<span class="badge b-soon">מתקרב</span>{% endif %}
+            {% if t.row.match_confidence == 'low' %}<span class="badge b-low">low</span>{% endif %}
+            <div class="src">מקורות: {{ t.row.sources }}</div>
+          </td>
+          <td data-label="מפרסם">{{ t.row.publisher }}</td>
+          <td data-label="מס' מכרז">{{ t.row.tender_number or '—' }}</td>
+          <td data-label="סטטוס">
+            {% if t.paid %}<span class="badge b-paid">{{ t.row.status }}</span>
+            {% else %}{{ t.row.status }}{% endif %}
+          </td>
+          <td data-label="קישורים">
+            {% if t.row.source_url %}<a href="{{ t.row.source_url }}" target="_blank" rel="noopener">עמוד המקור</a>{% endif %}
+            {% if t.row.local_path %} · <a href="file:///{{ t.row.local_path }}">תיקייה מקומית</a>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if not tenders %}<p>לא נמצאו מכרזים פתוחים בהרצה זו.</p>{% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+# ============================================================================
+#  רשימת המקורות (מפרסמי מכרזים).
+#  כל מקור = מתאם (adapter) ב-infra_tenders/adapters/<name>.py.
+#  הוספת מקור חדש = הוספת מתאם + רשומה כאן. הליבה לא משתנה.
+#
+#  שדות:
+#    name          מזהה קצר (משמש ב---source <name>). חייב להתאים לשם המתאם.
+#    publisher     שם המפרסם בעברית (משמש בשמות תיקיות וב-report).
+#    enabled       האם לכלול ב---all.
+#    requires_login  האם דורש אישורי גישה מ-.env.
+#    urls          כתובות עמוד המכרזים (אַמת בזמן ריצה; אתרים משתנים).
+#    notes         הערות.
+# ============================================================================
+
+sources:
+  - name: iroads
+    publisher: "נתיבי ישראל"
+    enabled: true
+    requires_login: false
+    urls:
+      - "https://www.iroads.co.il/מכרזים/מכרזים/"
+      - "https://tender.iroads.co.il/"   # מערכת מכרזים ייעודית
+    notes: "מתאם ראשון — אתר עשיר ומובנה. פילטר סטטוס פתוח/סגור."
+
+  # --- מקורות נוספים: יתווספו מתאם-מתאם לאחר אישור המתאם הראשון ----------
+  - name: nta
+    publisher: "נת\"ע"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.nta.co.il/tenders/"
+    notes: "טרם מומש."
+
+  - name: transisrael
+    publisher: "חוצה ישראל"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.transisrael.co.il/Tenders"
+    notes: "טרם מומש."
+
+  - name: rail
+    publisher: "רכבת ישראל"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.rail.co.il"
+    notes: "טרם מומש. לאתר את עמוד המכרזים הראשי (לא מטענים)."
+
+  - name: ingl
+    publisher: "נתיבי הגז"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.ingl.co.il/tenders/"
+    notes: "טרם מומש."
+
+  - name: mrgov
+    publisher: "מינהל הרכש הממשלתי"
+    enabled: false
+    requires_login: true
+    urls:
+      - "https://mr.gov.il/ilgstorefront/he/"
+    notes: "דורש התחברות (MRGOV_USERNAME/MRGOV_PASSWORD ב-.env). טרם מומש."
+
+  - name: jobiz
+    publisher: "jobiz (אגרגטור ממשלתי)"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://jobiz.gov.il"
+    notes: "אגרגטור — משמש לאיחוד מקורות. טרם מומש."
+
+  - name: ayalon
+    publisher: "נתיבי איילון"
+    enabled: false
+    requires_login: false
+    urls:
+      - "https://www.ayalonhw.co.il/tenders/tenders-lobby/"
+    notes: "טרם מומש."

@@ -1,0 +1,13 @@
+# Core
+playwright==1.49.1          # אוטומציית דפדפן (אתרים כבדי-JS / התחברות)
+httpx==0.28.1               # הורדות ישירות מהירות (כשאין צורך בדפדפן)
+pydantic==2.10.4           # מודל נתונים אחיד ו-validation
+PyYAML==6.0.2              # קריאת קבצי ההגדרות (keywords.yaml / sources.yaml)
+Jinja2==3.1.5              # יצירת report.html
+python-dotenv==1.0.1       # טעינת אישורי גישה מ-.env
+python-dateutil==2.9.0.post0  # פענוח תאריכים גמיש
+tzdata==2024.2            # אזורי זמן (Asia/Jerusalem) ב-Windows
+beautifulsoup4==4.12.3     # פענוח HTML של עמודי הרשימה/המכרז (html.parser, בלי lxml)
+
+# Dev / tests
+pytest==8.3.4
