@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import re
+from pathlib import Path
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -36,6 +37,41 @@ DEFAULT_OPEN_MARKERS = ["פתוח", "פעיל"]
 # סיומות קבצים שנחשבות "מסמך מכרז" להורדה.
 DEFAULT_DOC_EXT = (".pdf", ".doc", ".docx", ".xls", ".xlsx", ".zip", ".rar",
                    ".dwg", ".dwf", ".ppt", ".pptx", ".rtf")
+
+# --- זיהוי חסימת בוט / CAPTCHA (מדויק — לא נופל על reCAPTCHA אקראי בטופס) ----
+# חתימות של עמוד-חסימה *שלם* (Cloudflare / Akamai / PerimeterX / Imperva וכו').
+# נדרשת חתימה כזו, או קוד שגיאת-גישה, כדי לקבוע "נחסם" — נוכחות המילה
+# "captcha" לבדה בעמוד תקין אינה מספיקה.
+BLOCK_SIGNATURES = [
+    "just a moment",                      # Cloudflare challenge
+    "checking your browser",              # Cloudflare
+    "attention required! | cloudflare",
+    "/cdn-cgi/challenge-platform",        # Cloudflare challenge script
+    "access denied",
+    "access to this page has been denied",
+    "you have been blocked",
+    "please verify you are a human",
+    "verify you are human",
+    "enable javascript and cookies to continue",
+    "px-captcha", "perimeterx",           # PerimeterX
+    "incapsula incident id",              # Imperva/Incapsula
+    "request unblock",
+]
+BLOCK_STATUSES = {401, 403, 429, 503}     # קודי גישה-נדחתה נפוצים בחסימה
+
+
+def _detect_block(content: str, status: int | None, title: str) -> tuple[bool, str]:
+    """מחזיר (נחסם?, סיבה). מדויק כדי להימנע מהתרעות שווא."""
+    low = (content or "").lower()
+    title_low = (title or "").lower()
+    for sign in BLOCK_SIGNATURES:
+        if sign in low or sign in title_low:
+            return True, f"חתימת חסימה: '{sign}'"
+    # קוד גישה-נדחתה + עמוד קצר מאוד = ככל הנראה דף חסימה.
+    if status in BLOCK_STATUSES and len(content or "") < 4000:
+        return True, f"קוד HTTP {status} עם עמוד קצר"
+    return False, ""
+
 
 # זיהוי מספר מכרז בטקסט.
 _NUM_RE = re.compile(r"מכרז\s*(?:מס['׳]?\.?\s*)?([0-9][0-9/\-.]{1,20})")
@@ -175,7 +211,9 @@ class GenericAdapter(BaseAdapter):
     DOC_EXT: tuple[str, ...] = DEFAULT_DOC_EXT
     #: האם להיכנס לעמוד הפרטים של כל מכרז כדי לאסוף קבצים (אחרת — קבצים מהרשימה).
     FOLLOW_DETAIL: bool = True
-    WAIT_UNTIL: str = "networkidle"
+    WAIT_UNTIL: str = "domcontentloaded"
+    #: תיקיית דיבאג — אם מוגדרת, נשמרים HTML + צילום מסך לכל עמוד שנטען.
+    debug_dir: Path | None = None
 
     def fetch_open_tenders(self, page, client) -> list[Tender]:
         if page is None:
@@ -212,12 +250,41 @@ class GenericAdapter(BaseAdapter):
 
     # --- רינדור עמוד עם Playwright + זיהוי חסימה ----------------------------
     def _render(self, page, url: str) -> str:
-        page.goto(url, wait_until=self.WAIT_UNTIL, timeout=60000)
+        resp = page.goto(url, wait_until=self.WAIT_UNTIL, timeout=60000)
+        status = resp.status if resp else None
+        # נותנים ל-JS הזדמנות לרנדר תוכן, בלי להיתקע אם אין networkidle.
+        try:
+            page.wait_for_load_state("networkidle", timeout=8000)
+        except Exception:
+            pass
         content = page.content()
-        low = content.lower()
-        if "captcha" in low or "אני לא רובוט" in content or "are you human" in low:
-            raise AdapterBlocked(f"זוהה CAPTCHA/חסימת בוט ב-{url}")
+        title = ""
+        try:
+            title = page.title()
+        except Exception:
+            pass
+
+        self._dump_debug(page, url, content, status)
+
+        blocked, why = _detect_block(content, status, title)
+        if blocked:
+            raise AdapterBlocked(f"{why} ב-{url}")
         return content
+
+    def _dump_debug(self, page, url: str, content: str, status) -> None:
+        """במצב --debug: שומר HTML + צילום מסך של העמוד לאבחון."""
+        if not self.debug_dir:
+            return
+        try:
+            self.debug_dir.mkdir(parents=True, exist_ok=True)
+            slug = re.sub(r"\W+", "_", url).strip("_")[-70:] or "page"
+            (self.debug_dir / f"{slug}.html").write_text(content, encoding="utf-8")
+            page.screenshot(path=str(self.debug_dir / f"{slug}.png"),
+                            full_page=True)
+            log.info("[%s] דיבאג נשמר: %s (HTTP %s)", self.name,
+                     self.debug_dir / f"{slug}.png", status)
+        except Exception as exc:  # noqa: BLE001
+            log.debug("[%s] כשל בשמירת דיבאג: %s", self.name, exc)
 
     # --- בניית Tender מלא ---------------------------------------------------
     def _build_tender(self, page, c: dict, deadline) -> Tender | None:

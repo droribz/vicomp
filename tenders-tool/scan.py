@@ -71,7 +71,8 @@ def cmd_list_sources() -> None:
 
 # ---------------------------------------------------------------------------
 def scan_source(s: dict, page, client: PoliteClient,
-                kw: filtering.Keywords) -> tuple[list[Tender], ScanResult]:
+                kw: filtering.Keywords, *,
+                debug_dir: Path | None = None) -> tuple[list[Tender], ScanResult]:
     """סורק מקור בודד. מחזיר מכרזים (אחרי פילטור) ותוצאת סריקה."""
     name = s["name"]
     result = ScanResult(source=name, publisher=s["publisher"])
@@ -93,6 +94,8 @@ def scan_source(s: dict, page, client: PoliteClient,
                        urls=s.get("urls", []),
                        requires_login=s.get("requires_login", False))
     adapter = adapter_cls(cfg, credentials=creds)
+    if debug_dir is not None:
+        adapter.debug_dir = debug_dir / name
 
     try:
         raw = adapter.fetch_open_tenders(page, client)
@@ -133,11 +136,13 @@ def scan_source(s: dict, page, client: PoliteClient,
 
 
 # ---------------------------------------------------------------------------
-def run(selected: list[dict], *, dry_run: bool) -> None:
+def run(selected: list[dict], *, dry_run: bool, debug: bool = False) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     log_path = setup_logging(OUTPUT_DIR / "_logs")
     run_day = today_il()
-    log.info("התחלת סריקה · תאריך %s · dry-run=%s", run_day, dry_run)
+    log.info("התחלת סריקה · תאריך %s · dry-run=%s · debug=%s",
+             run_day, dry_run, debug)
+    debug_dir = (OUTPUT_DIR / "_logs" / "debug") if debug else None
 
     # 1) ארכוב אוטומטי של מכרזים שמועדם עבר (לא ב-dry-run).
     if not dry_run:
@@ -151,9 +156,11 @@ def run(selected: list[dict], *, dry_run: bool) -> None:
 
     # 2) סריקת המקורות (דפדפן משותף; שגיאה במקור אחד לא מפילה את השאר).
     with PoliteClient() as client:
-        with browser_session(headless=True) as page:
+        # במצב דיבאג מריצים דפדפן גלוי כדי לראות מה קורה.
+        with browser_session(headless=not debug) as page:
             for s in selected:
-                tenders, result = scan_source(s, page, client, KEYWORDS)
+                tenders, result = scan_source(s, page, client, KEYWORDS,
+                                              debug_dir=debug_dir)
                 all_tenders.extend(tenders)
                 results.append(result)
 
@@ -269,6 +276,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="הצג מקורות זמינים וסטטוס")
     parser.add_argument("--dry-run", action="store_true",
                         help="הצג מה היה יורד בלי להוריד בפועל")
+    parser.add_argument("--debug", action="store_true",
+                        help="דפדפן גלוי + שמירת HTML וצילום מסך לכל עמוד (לאבחון)")
     args = parser.parse_args(argv)
 
     load_dotenv(ROOT / ".env")
@@ -289,7 +298,7 @@ def main(argv: list[str] | None = None) -> int:
             print("אין מקורות פעילים ב-config/sources.yaml.")
             return 2
 
-    run(selected, dry_run=args.dry_run)
+    run(selected, dry_run=args.dry_run, debug=args.debug)
     return 0
 
 

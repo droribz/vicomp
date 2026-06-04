@@ -72,12 +72,20 @@ def browser_session(*, headless: bool = True):
         ) from exc
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=headless)
+        browser = p.chromium.launch(
+            headless=headless,
+            # מצמצם טביעת אצבע של אוטומציה (מקטין חסימות בוט שגויות).
+            args=["--disable-blink-features=AutomationControlled"],
+        )
         context = browser.new_context(
             user_agent=USER_AGENT,
             locale="he-IL",
+            timezone_id="Asia/Jerusalem",
             viewport={"width": 1366, "height": 900},
         )
+        # מסתיר את navigator.webdriver=true שחושף כלי אוטומציה.
+        context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});")
         page = context.new_page()
         try:
             yield page
