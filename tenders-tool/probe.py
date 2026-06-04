@@ -51,15 +51,26 @@ def main() -> None:
             rtype = resp.request.resource_type
             if rtype not in ("xhr", "fetch"):
                 return
+            url = resp.url
+            if "analytics" in url or "google" in url or "gtm" in url:
+                return  # מסנן רעש אנליטיקס
             ct = resp.headers.get("content-type", "")
+            body = ""
+            try:
+                body = resp.text()
+            except Exception:
+                pass
+            markers = sum(1 for m in TENDER_MARKERS if m in body)
             rec = {"method": resp.request.method, "status": resp.status,
-                   "ct": ct, "url": resp.url,
-                   "post": resp.request.post_data}
+                   "ct": ct, "url": url, "post": resp.request.post_data,
+                   "body": body, "markers": markers}
             xhr.append(rec)
-            body = resp.text()
-            data = json.loads(body)  # ינסה JSON ללא תלות ב-content-type
-            n = _max_array_len(data)
-            json_hits.append({**rec, "data": data, "body": body, "arr": n})
+            try:
+                data = json.loads(body)
+                json_hits.append({**rec, "data": data,
+                                  "arr": _max_array_len(data)})
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -121,7 +132,27 @@ def main() -> None:
     print(f"תגובות XHR/fetch: {len(xhr)}  |  מתוכן JSON: {len(json_hits)}")
     print("=" * 64)
     for r in xhr[:25]:
-        print(f"  {r['method']} {r['status']} {r['ct'][:25]:<25} {r['url'][:90]}")
+        print(f"  {r['method']} {r['status']} markers={r['markers']:<2} "
+              f"{r['ct'][:22]:<22}")
+        print(f"      {r['url']}")          # כתובת מלאה (לא חתוכה)
+        if r["post"]:
+            print(f"      POST: {str(r['post'])[:300]}")
+
+    # --- תגובת ה-HTML שמכילה את המכרזים (המקור האמיתי) ---
+    data_recs = sorted([r for r in xhr if r["markers"] >= 2],
+                       key=lambda x: -x["markers"])
+    if data_recs:
+        rec = data_recs[0]
+        (out / "tenders_fragment.html").write_text(rec["body"], encoding="utf-8")
+        print("\n" + "=" * 64)
+        print("תגובת הנתונים (קטע ה-HTML עם המכרזים):")
+        print("=" * 64)
+        print("כתובת מלאה:", rec["url"])
+        if rec["post"]:
+            print("POST body:", rec["post"][:400])
+        print(f"\nתחילת קטע ה-HTML (נשמר במלואו ל-tenders_fragment.html):\n")
+        print(rec["body"][:3500])
+
     if json_hits:
         best = max(json_hits, key=lambda x: x["arr"])
         (out / "best_api.json").write_text(best["body"], encoding="utf-8")
