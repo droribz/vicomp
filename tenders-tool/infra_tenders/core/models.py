@@ -42,6 +42,8 @@ class Tender(BaseModel):
     publisher: str                    # שם המפרסם בעברית
     tender_number: Optional[str] = None
     title: str
+    # קטגוריה מהמקור (למשל "פיתוח" / "רכבתיים") — משמשת גם לסיווג תשתיות.
+    category: str = ""
 
     # --- תאריכים ---
     submission_deadline: Optional[date] = None  # מועד הגשה אחרון

@@ -211,6 +211,9 @@ class GenericAdapter(BaseAdapter):
     DOC_EXT: tuple[str, ...] = DEFAULT_DOC_EXT
     #: האם להיכנס לעמוד הפרטים של כל מכרז כדי לאסוף קבצים (אחרת — קבצים מהרשימה).
     FOLLOW_DETAIL: bool = True
+    #: בזמן ריצה: האם לאסוף קבצים מעמודי הפרטים. ב---dry-run מוגדר False
+    #: לתצוגה מהירה של הרשימה בלבד.
+    collect_files: bool = True
     WAIT_UNTIL: str = "domcontentloaded"
     #: תיקיית דיבאג — אם מוגדרת, נשמרים HTML + צילום מסך לכל עמוד שנטען.
     debug_dir: Path | None = None

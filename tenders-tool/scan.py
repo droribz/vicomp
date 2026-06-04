@@ -72,7 +72,8 @@ def cmd_list_sources() -> None:
 # ---------------------------------------------------------------------------
 def scan_source(s: dict, page, client: PoliteClient,
                 kw: filtering.Keywords, *,
-                debug_dir: Path | None = None) -> tuple[list[Tender], ScanResult]:
+                debug_dir: Path | None = None,
+                collect_files: bool = True) -> tuple[list[Tender], ScanResult]:
     """סורק מקור בודד. מחזיר מכרזים (אחרי פילטור) ותוצאת סריקה."""
     name = s["name"]
     result = ScanResult(source=name, publisher=s["publisher"])
@@ -94,6 +95,7 @@ def scan_source(s: dict, page, client: PoliteClient,
                        urls=s.get("urls", []),
                        requires_login=s.get("requires_login", False))
     adapter = adapter_cls(cfg, credentials=creds)
+    adapter.collect_files = collect_files
     if debug_dir is not None:
         adapter.debug_dir = debug_dir / name
 
@@ -119,7 +121,8 @@ def scan_source(s: dict, page, client: PoliteClient,
     for t in raw:
         if is_expired(t.submission_deadline):
             continue
-        match = filtering.classify(t.title, kw)
+        # מסווגים לפי כותרת + קטגוריה (הקטגוריה במקור היא אות תשתית חזק).
+        match = filtering.classify(f"{t.title} {t.category}", kw)
         if not match.include:
             log.debug("[%s] לא תשתית: %s (%s)", name, t.title, match.reason)
             continue
@@ -160,7 +163,8 @@ def run(selected: list[dict], *, dry_run: bool, debug: bool = False) -> None:
         with browser_session(headless=not debug) as page:
             for s in selected:
                 tenders, result = scan_source(s, page, client, KEYWORDS,
-                                              debug_dir=debug_dir)
+                                              debug_dir=debug_dir,
+                                              collect_files=not dry_run)
                 all_tenders.extend(tenders)
                 results.append(result)
 
