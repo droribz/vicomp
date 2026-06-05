@@ -167,30 +167,38 @@ def _analyze_frame(fr, out: Path) -> None:
         if n:
             print(f"  סלקטור '{sel:<18}' -> {n}")
 
-    # 2) זיהוי שורת-מכרז לפי קישור, והדפסת ה-HTML של הקונטיינר שלה.
+    # 2) זיהוי שורת-מכרז לפי קישור *ספציפי* לעמוד מכרז (tenderID / Tender?id).
     js = """() => {
         const links = Array.from(document.querySelectorAll('a[href]'));
-        const pats = ['tender','michraz','מכרז','tenderid'];
-        const a = links.find(x => {
-            const h = (x.getAttribute('href')||'').toLowerCase();
-            return pats.some(p => h.includes(p));
-        });
-        if(!a) return '';
-        let el = a;
-        for(let i=0;i<5 && el.parentElement;i++){
-            el = el.parentElement;
-            if(['LI','TR','ARTICLE'].includes(el.tagName)) break;
-        }
-        return el.outerHTML;
+        const re = /(tenderid=|tender\\?|michraz|מכרז-)/i;
+        const matches = links.filter(x => re.test(x.getAttribute('href')||''));
+        const a = matches.find(x => !/\\/tenders\\/?$/i.test(x.getAttribute('href')||''))
+                  || matches[0];
+        if(!a) return {found:false, count:0};
+        return {found:true, count:matches.length,
+                href:a.getAttribute('href'),
+                self:a.outerHTML,
+                parent:a.parentElement ? a.parentElement.outerHTML : '',
+                grand:(a.parentElement&&a.parentElement.parentElement)
+                      ? a.parentElement.parentElement.outerHTML : ''};
     }"""
     try:
-        sample = fr.evaluate(js)
+        res = fr.evaluate(js)
     except Exception:
-        sample = ""
-    if sample:
-        (out / "sample_row.html").write_text(sample, encoding="utf-8")
-        print("\nשורת-מכרז לדוגמה (לפי קישור מכרז):")
-        print(sample[:2800])
+        res = {"found": False}
+
+    if res.get("found"):
+        print(f"\nקישורי מכרז ספציפיים: {res.get('count')}")
+        print("href לדוגמה:", res.get("href"))
+        (out / "sample_row.html").write_text(
+            res.get("grand") or res.get("parent") or res.get("self"),
+            encoding="utf-8")
+        print("\n--- הקישור עצמו (a) ---")
+        print((res.get("self") or "")[:1400])
+        print("\n--- ההורה (parent) ---")
+        print((res.get("parent") or "")[:2000])
+        print("\n--- הסבא (grandparent, מקוצר) ---")
+        print((res.get("grand") or "")[:1500])
     else:
         print("\nלא זוהתה שורת-מכרז לפי קישור. בדוק את tender_frame.html שנשמר.")
 
