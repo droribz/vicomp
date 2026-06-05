@@ -63,13 +63,13 @@ sources:
 
   - name: yefenof
     publisher: "יפה נוף"
-    enabled: false
+    enabled: true
     requires_login: false
     urls:
-      - "https://www.yefenof.co.il/tenders"
+      - "https://www.yefenof.co.il/Tenders"
     notes: >-
-      מאומת ומבנה נקי במיוחד: עמוד מכרז /Tender?tenderID=NNNN,
-      קבצים תחת /Uploads/tenderDocuments/. מועמד מצוין למתאם השני.
+      ממומש. אתר Webflow; רשימה ב-li.tenders_item, עמוד מכרז
+      /Tender?tenderID=NNNN, קבצים תחת /Uploads/. מועד הגשה נשלף מעמוד המכרז.
 
   - name: moriah
     publisher: "מוריה - פיתוח ירושלים"
