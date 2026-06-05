@@ -67,12 +67,20 @@ class PoliteClient:
         self._throttle()
         dest.parent.mkdir(parents=True, exist_ok=True)
         size = 0
-        with self._client.stream("GET", url) as resp:
-            resp.raise_for_status()
-            with open(dest, "wb") as fh:
-                for chunk in resp.iter_bytes(chunk_size=65536):
-                    fh.write(chunk)
-                    size += len(chunk)
+        # timeout נדיב לקבצים ענקיים (תוכניות/שרטוטים): עד 5 דקות בין מקטעים.
+        timeout = httpx.Timeout(connect=30.0, read=300.0, write=300.0, pool=30.0)
+        tmp = dest.with_suffix(dest.suffix + ".part")  # קובץ זמני עד סיום מלא
+        try:
+            with self._client.stream("GET", url, timeout=timeout) as resp:
+                resp.raise_for_status()
+                with open(tmp, "wb") as fh:
+                    for chunk in resp.iter_bytes(chunk_size=65536):
+                        fh.write(chunk)
+                        size += len(chunk)
+            tmp.replace(dest)  # שינוי שם אטומי — הקובץ הסופי קיים רק אם הושלם
+        finally:
+            if tmp.exists():
+                tmp.unlink()  # מנקה שארית במקרה כישלון
         return size
 
     def close(self) -> None:

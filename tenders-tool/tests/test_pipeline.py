@@ -87,6 +87,45 @@ def test_full_pipeline(tmp_path):
     assert "כביש 6" in (root / "report.html").read_text(encoding="utf-8")
 
 
+class FlakyClient(StubClient):
+    """נכשל בהורדת קובץ מסוים עד שמדליקים לו 'תקן'."""
+
+    def __init__(self):
+        self.fail_url = "https://x/specs.pdf"
+
+    def download(self, url, dest):
+        if url == self.fail_url:
+            raise RuntimeError("נפילת רשת מדומה")
+        return super().download(url, dest)
+
+
+def test_retry_incomplete_redownloads_failed_file(tmp_path):
+    root = tmp_path / "tenders"
+    client = FlakyClient()
+    store = TenderStore(root, client)
+    t = _tender([
+        ("https://x/booklet.pdf", "חוברת"),
+        ("https://x/specs.pdf", "מפרט"),
+    ])
+
+    # ריצה 1: specs נכשל.
+    out1 = store.store(t)
+    assert out1.status == "new"
+    vdir = out1.dir / out1.version
+    assert (vdir / "חוברת__booklet.pdf").exists()
+    assert not list(vdir.glob("*specs*"))          # הקובץ הכושל לא קיים
+
+    # ריצה 2 (אותו סט קבצים): לא מדלגים — משלימים את specs שנכשל.
+    client.fail_url = None                          # עכשיו ההורדה תצליח
+    out2 = store.store(t)
+    assert out2.status == "retried"
+    assert any("specs" in p.name for p in vdir.glob("*"))  # הושלם
+
+    # ריצה 3: עכשיו הכול שלם — מדלגים.
+    out3 = store.store(t)
+    assert out3.status == "unchanged"
+
+
 def test_archive_expired(tmp_path):
     root = tmp_path / "tenders"
     store = TenderStore(root, StubClient())

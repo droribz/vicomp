@@ -68,8 +68,16 @@ class TenderStore:
         current_urls = sorted(f.url for f in tender.files)
         prev_urls = meta.get("last_file_urls", []) if meta else []
 
-        # --- אידמפוטנטיות: קיים וללא שינוי ---
+        # --- אידמפוטנטיות: קיים וללא שינוי בסט הקבצים ---
         if meta and current_urls == prev_urls:
+            if self.dry_run:
+                log.info("  ↳ ללא שינוי (dry-run): %s", tender.title)
+                return StoreOutcome(status="unchanged", dir=tdir,
+                                    version=meta.get("last_version"))
+            # לא מדלגים בעיוורון: אם נשארו קבצים שנכשלו/חסרים — משלימים אותם.
+            retried = self._retry_incomplete(tdir, tender, meta)
+            if retried is not None:
+                return retried
             log.info("  ↳ ללא שינוי, מדלג: %s", tender.title)
             return StoreOutcome(status="unchanged", dir=tdir,
                                 version=meta.get("last_version"))
@@ -95,6 +103,57 @@ class TenderStore:
                  "חדש" if is_new else "עודכן", tender.title, version,
                  sum(1 for o in outcomes if o.ok))
         return StoreOutcome(status=status, dir=tdir, version=version,
+                            files=outcomes)
+
+    # --- השלמת קבצים שנכשלו/חסרים בריצה קודמת -------------------------------
+    def _retry_incomplete(self, tdir: Path, tender: Tender,
+                          meta: dict) -> StoreOutcome | None:
+        """מוריד מחדש רק קבצים שנכשלו או חסרים מהדיסק בגרסה האחרונה.
+
+        מחזיר StoreOutcome אם בוצעה השלמה, או None אם הכול שלם (אז מדלגים).
+        """
+        last_version = meta.get("last_version")
+        versions = meta.get("versions", [])
+        if not last_version or not versions:
+            return None
+        version_dir = tdir / last_version
+        last_files = versions[-1].get("files", [])
+
+        need = [fe for fe in last_files
+                if (not fe.get("ok"))
+                or (not (version_dir / (fe.get("filename") or "")).exists())]
+        if not need:
+            return None
+
+        log.info("  ↳ משלים %d קבצים שנכשלו/חסרים: %s", len(need), tender.title)
+        by_url = {fe["url"]: fe for fe in last_files}
+        for fe in need:
+            url = fe.get("url")
+            fname = fe.get("filename") or naming.filename_from_url(url)
+            dest = version_dir / fname
+            try:
+                if not self.client.allowed(url):
+                    raise PermissionError("robots.txt חוסם")
+                n = self.client.download(url, dest)
+                by_url[url] = {"label": fe.get("label"), "filename": fname,
+                               "url": url, "bytes": n, "ok": True, "error": None}
+                log.debug("    הושלם %s (%d bytes)", fname, n)
+            except Exception as exc:  # noqa: BLE001
+                by_url[url] = {"label": fe.get("label"), "filename": fname,
+                               "url": url, "bytes": 0, "ok": False,
+                               "error": str(exc)}
+                log.warning("    כשל חוזר בהורדת %s: %s", url, exc)
+
+        versions[-1]["files"] = [by_url.get(fe["url"], fe) for fe in last_files]
+        meta["updated_at"] = today_il().isoformat()
+        (tdir / "meta.json").write_text(
+            json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        outcomes = [FileOutcome(fe.get("label"), fe.get("filename"),
+                                fe.get("url"), fe.get("bytes", 0),
+                                ok=fe.get("ok", False), error=fe.get("error"))
+                    for fe in versions[-1]["files"]]
+        return StoreOutcome(status="retried", dir=tdir, version=last_version,
                             files=outcomes)
 
     # --- הורדת קבצים --------------------------------------------------------

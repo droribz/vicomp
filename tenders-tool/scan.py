@@ -205,7 +205,7 @@ def _tally(results: list[ScanResult], source: str, status: str) -> None:
     r = next((x for x in results if x.source == source), None)
     if not r:
         return
-    if status in ("new", "updated", "dry-run"):
+    if status in ("new", "updated", "dry-run", "retried"):
         r.downloaded += 1
     elif status == "unchanged":
         r.skipped += 1
