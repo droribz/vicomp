@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""כלי אבחון לאתרי SPA / iframe — מגלה איפה ובאיזה מבנה יושבים המכרזים.
+"""כלי אבחון לאתרי מכרזים — מגלה איפה ובאיזה מבנה יושבים המכרזים.
 
 פותח דפדפן גלוי, ממתין לטעינה, ואז:
-  1. מקליט תגובות רשת (XHR/fetch) ומזהה כאלה שהן JSON (API אפשרי).
-  2. עובר על כל ה-frames (כולל iframe) ומאתר את זה שמכיל מכרזים.
-  3. מדפיס את כתובת ה-frame הפנימי, סלקטור מועמד לשורת-מכרז, וה-HTML
-     של שורה אחת לדוגמה — כך אפשר לבנות מתאם מדויק.
+  1. מקליט תגובות רשת (XHR/fetch) ומזהה JSON (API אפשרי).
+  2. עובר על כל ה-frames, מנקד כל אחד לפי סימני-מכרז וקישורי-מכרז,
+     ובוחר את ה-frame הרלוונטי ביותר (גם אם יש רק רמז אחד).
+  3. מדפיס סלקטור מועמד לשורת-מכרז + ה-HTML של שורה אחת לדוגמה,
+     ושומר את ה-HTML המלא — כך אפשר לבנות מתאם מדויק.
 
 שימוש:
     python probe.py                          # עמוד המכרזים של נתיבי ישראל
@@ -25,16 +26,17 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 DEFAULT_URL = "https://www.iroads.co.il/מכרזים/מכרזים/"
 WAIT_SECONDS = 30
 
-# סימנים לכך ש-frame מכיל רשימת מכרזים.
-TENDER_MARKERS = ["מספר מכרז", "להגשת הצעות", "מועד הגשה", "להגשה",
-                  "סטטוס", "פתוח", "מכרז פומבי"]
+TENDER_MARKERS = ["מספר מכרז", "להגשת הצעות", "מועד הגשה", "להגשה", "מכרז פומבי",
+                  "מכרז מס", "תאריך אחרון", "סטאטוס", "סטטוס", "מכרזים"]
 
-# סלקטורים מועמדים לשורת/כרטיס מכרז (לפי סדר ניסיון).
+# תבנית קישור שמרמזת על עמוד מכרז (href).
+TENDER_HREF = ["tender", "michraz", "מכרז", "tenderid"]
+
 CANDIDATE_SELECTORS = [
+    "li.tender-item", "[class*=tender]", "[class*=Tender]", "[class*=michraz]",
     "table tbody tr", "tbody tr", "tr",
-    "[class*=tender]", "[class*=Tender]", "[class*=michraz]",
-    "[class*=row] ", "[class*=card]", "[class*=item]",
-    "ul li", "div.row", "li",
+    "[class*=item]", "[class*=card]", "[class*=row]",
+    "article", "ul li", "li", "div.row",
 ]
 
 
@@ -48,12 +50,11 @@ def main() -> None:
 
     def on_response(resp):
         try:
-            rtype = resp.request.resource_type
-            if rtype not in ("xhr", "fetch"):
+            if resp.request.resource_type not in ("xhr", "fetch"):
                 return
-            url = resp.url
-            if "analytics" in url or "google" in url or "gtm" in url:
-                return  # מסנן רעש אנליטיקס
+            u = resp.url
+            if any(s in u for s in ("analytics", "google", "gtm", "cdn-cgi/rum")):
+                return
             ct = resp.headers.get("content-type", "")
             body = ""
             try:
@@ -62,13 +63,12 @@ def main() -> None:
                 pass
             markers = sum(1 for m in TENDER_MARKERS if m in body)
             rec = {"method": resp.request.method, "status": resp.status,
-                   "ct": ct, "url": url, "post": resp.request.post_data,
+                   "ct": ct, "url": u, "post": resp.request.post_data,
                    "body": body, "markers": markers}
             xhr.append(rec)
             try:
-                data = json.loads(body)
-                json_hits.append({**rec, "data": data,
-                                  "arr": _max_array_len(data)})
+                json_hits.append({**rec, "data": json.loads(body),
+                                  "arr": _max_array_len(json.loads(body))})
             except Exception:
                 pass
         except Exception:
@@ -90,112 +90,112 @@ def main() -> None:
             print("אזהרה בטעינה:", exc)
         page.wait_for_timeout(WAIT_SECONDS * 1000)
 
-        # --- ניתוח frames ---
+        # --- בחירת ה-frame הרלוונטי ביותר ---
         frames = page.frames
         print("=" * 64)
-        print(f"נמצאו {len(frames)} frames בעמוד:")
-        tender_frame = None
+        print(f"נמצאו {len(frames)} frames:")
+        best_frame, best_score = None, -1
         for i, fr in enumerate(frames):
             try:
                 txt = fr.evaluate("document.body ? document.body.innerText : ''")
             except Exception:
                 txt = ""
-            has = sum(1 for m in TENDER_MARKERS if m in txt)
-            print(f"  [{i}] markers={has:<2} url={fr.url[:90]}")
-            if has >= 3 and tender_frame is None:
-                tender_frame = fr
+            markers = sum(1 for m in TENDER_MARKERS if m in txt)
+            links = _count_tender_links(fr)
+            score = markers + links
+            print(f"  [{i}] markers={markers:<2} tender-links={links:<3} "
+                  f"url={fr.url[:80]}")
+            if score > best_score:
+                best_frame, best_score = fr, score
 
-        # --- ניתוח ה-frame עם המכרזים ---
-        if tender_frame is not None:
+        if best_frame is not None:
             print("\n" + "=" * 64)
-            print(f"frame המכרזים: {tender_frame.url}")
+            print(f"מנתח frame: {best_frame.url}")
             print("=" * 64)
             try:
                 (out / "tender_frame.html").write_text(
-                    tender_frame.content(), encoding="utf-8")
+                    best_frame.content(), encoding="utf-8")
             except Exception:
                 pass
-            _analyze_frame(tender_frame, out)
-        else:
-            print("\nלא זוהה frame עם מכרזים. שומר את כל ה-frames לבדיקה.")
-            for i, fr in enumerate(frames):
-                try:
-                    (out / f"frame_{i}.html").write_text(
-                        fr.content(), encoding="utf-8")
-                except Exception:
-                    pass
+            _analyze_frame(best_frame, out)
 
         browser.close()
 
     # --- ניתוח רשת ---
     print("\n" + "=" * 64)
-    print(f"תגובות XHR/fetch: {len(xhr)}  |  מתוכן JSON: {len(json_hits)}")
+    print(f"תגובות XHR/fetch: {len(xhr)}  |  JSON: {len(json_hits)}")
     print("=" * 64)
     for r in xhr[:25]:
         print(f"  {r['method']} {r['status']} markers={r['markers']:<2} "
-              f"{r['ct'][:22]:<22}")
-        print(f"      {r['url']}")          # כתובת מלאה (לא חתוכה)
+              f"{r['ct'][:22]:<22}\n      {r['url']}")
         if r["post"]:
-            print(f"      POST: {str(r['post'])[:300]}")
-
-    # --- תגובת ה-HTML שמכילה את המכרזים (המקור האמיתי) ---
+            print(f"      POST: {str(r['post'])[:200]}")
     data_recs = sorted([r for r in xhr if r["markers"] >= 2],
                        key=lambda x: -x["markers"])
     if data_recs:
         rec = data_recs[0]
         (out / "tenders_fragment.html").write_text(rec["body"], encoding="utf-8")
-        print("\n" + "=" * 64)
-        print("תגובת הנתונים (קטע ה-HTML עם המכרזים):")
-        print("=" * 64)
-        print("כתובת מלאה:", rec["url"])
-        if rec["post"]:
-            print("POST body:", rec["post"][:400])
-        print(f"\nתחילת קטע ה-HTML (נשמר במלואו ל-tenders_fragment.html):\n")
-        print(rec["body"][:3500])
-
+        print("\nתגובת נתונים (HTML עם מכרזים):", rec["url"])
+        print(rec["body"][:3000])
     if json_hits:
         best = max(json_hits, key=lambda x: x["arr"])
-        (out / "best_api.json").write_text(best["body"], encoding="utf-8")
-        print(f"\nAPI מועמד: {best['method']} {best['url']}  (מערך~{best['arr']})")
-        if best["post"]:
-            print(f"  POST body: {str(best['post'])[:200]}")
-        item = _first_array_item(best["data"])
-        if isinstance(item, dict):
-            print("  שדות:", list(item.keys()))
-        print(json.dumps(item, ensure_ascii=False, indent=2)[:1500])
+        print(f"\nAPI מועמד: {best['url']} (מערך~{best['arr']})")
+        print(json.dumps(_first_array_item(best["data"]),
+                         ensure_ascii=False, indent=2)[:1200])
 
     print("\nכל הקבצים נשמרו ב:", out.resolve())
     print("\n>>> העתק לי את כל מה שמודפס למעלה <<<")
 
 
+def _count_tender_links(fr) -> int:
+    try:
+        hrefs = fr.evaluate(
+            "() => Array.from(document.querySelectorAll('a[href]'))"
+            ".map(a => a.getAttribute('href'))")
+    except Exception:
+        return 0
+    return sum(1 for h in hrefs if h and any(t in h.lower() for t in TENDER_HREF))
+
+
 def _analyze_frame(fr, out: Path) -> None:
-    """מנסה סלקטורים, מדפיס ספירות ואת ה-HTML של שורה אחת לדוגמה."""
-    best_sel, best_count, best_html = None, 0, ""
+    # 1) ספירת סלקטורים מועמדים.
     for sel in CANDIDATE_SELECTORS:
         try:
-            els = fr.query_selector_all(sel.strip())
+            n = len(fr.query_selector_all(sel))
         except Exception:
-            continue
-        count = len(els)
-        if count:
-            print(f"  סלקטור '{sel.strip():<18}' -> {count} אלמנטים")
-        # מחפש סלקטור עם מספר שורות סביר (5..200) שמכיל טקסט של מכרז.
-        if 3 <= count <= 300 and count > best_count:
-            try:
-                sample = els[0].evaluate("e => e.outerHTML")
-            except Exception:
-                sample = ""
-            if any(m in sample for m in TENDER_MARKERS) or "/" in sample:
-                best_sel, best_count, best_html = sel.strip(), count, sample
+            n = 0
+        if n:
+            print(f"  סלקטור '{sel:<18}' -> {n}")
 
-    if best_sel:
-        print(f"\nסלקטור מועמד לשורת-מכרז: '{best_sel}'  ({best_count} שורות)")
-        print("HTML של שורה אחת לדוגמה (מקוצר):")
-        print(best_html[:2500])
-        (out / "sample_row.html").write_text(best_html, encoding="utf-8")
+    # 2) זיהוי שורת-מכרז לפי קישור, והדפסת ה-HTML של הקונטיינר שלה.
+    js = """() => {
+        const links = Array.from(document.querySelectorAll('a[href]'));
+        const pats = ['tender','michraz','מכרז','tenderid'];
+        const a = links.find(x => {
+            const h = (x.getAttribute('href')||'').toLowerCase();
+            return pats.some(p => h.includes(p));
+        });
+        if(!a) return '';
+        let el = a;
+        for(let i=0;i<5 && el.parentElement;i++){
+            el = el.parentElement;
+            if(['LI','TR','ARTICLE'].includes(el.tagName)) break;
+        }
+        return el.outerHTML;
+    }"""
+    try:
+        sample = fr.evaluate(js)
+    except Exception:
+        sample = ""
+    if sample:
+        (out / "sample_row.html").write_text(sample, encoding="utf-8")
+        print("\nשורת-מכרז לדוגמה (לפי קישור מכרז):")
+        print(sample[:2800])
+    else:
+        print("\nלא זוהתה שורת-מכרז לפי קישור. בדוק את tender_frame.html שנשמר.")
 
 
-def _max_array_len(data, depth: int = 0) -> int:
+def _max_array_len(data, depth=0):
     if depth > 6:
         return 0
     best = 0
@@ -209,19 +209,19 @@ def _max_array_len(data, depth: int = 0) -> int:
     return best
 
 
-def _first_array_item(data, depth: int = 0):
+def _first_array_item(data, depth=0):
     if depth > 6:
         return None
     if isinstance(data, list) and data:
         deeper = _first_array_item(data[0], depth + 1) if isinstance(data[0], (dict, list)) else None
         return deeper if isinstance(deeper, dict) else data[0]
     if isinstance(data, dict):
-        best_len, best_item = 0, None
+        bl, bi = 0, None
         for v in data.values():
             n = _max_array_len(v, depth + 1)
-            if n > best_len:
-                best_len, best_item = n, _first_array_item(v, depth + 1)
-        return best_item
+            if n > bl:
+                bl, bi = n, _first_array_item(v, depth + 1)
+        return bi
     return None
 
 
