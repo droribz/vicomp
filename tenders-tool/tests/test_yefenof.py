@@ -40,5 +40,28 @@ def test_find_deadline_best_effort():
     assert _find_deadline("<p>אין כאן תאריך</p>") is None
 
 
+def test_number_requires_digit():
+    # עמודת "מספר" שמכילה טקסט בלי ספרה (קול קורא) -> אין מספר, כדי שלא
+    # יכווץ מכרזים שונים לאותו מפתח זיהוי.
+    html = """<ul><li class="tenders_item">
+        <div class="tenders_info_block num"><div class="jobs_mob_label">מספר</div>
+        <div>קול קורא הצטרפות למאגר</div></div>
+        <a href="/Tender?tenderID=9"><h4 class="tender_list_name">מאגר יועצים</h4>
+        <div class="tendet_status"><div>פתוח</div></div></a></li></ul>"""
+    rows = parse_yefenof_list(html, base_url="https://www.yefenof.co.il")
+    assert rows[0]["number"] is None
+
+
+def test_consultant_roster_excluded():
+    from infra_tenders.core.filtering import Keywords, classify
+    kw = Keywords.load(FIXTURES.parent.parent / "config" / "keywords.yaml")
+    # מאגרי יועצים/מתכננים/מפקחים — מוחרגים למרות אזכור תחום תשתית.
+    assert classify("קול קורא הצטרפות למאגר יועצי חשמל ותאורה", kw).include is False
+    assert classify("קול קורא הצטרפות למאגר מתכנני הידרולוגיה וניקוז", kw).include is False
+    assert classify("קול קורא לסוקרי גשרים ומבני דרך", kw).include is False
+    # אבל "קול קורא" עם ביצוע/הקמה כן נכלל (Design-Build):
+    assert classify("קול קורא לתכנון והקמת גשר", kw).include is True
+
+
 def test_registered():
     assert get_adapter("yefenof") is not None

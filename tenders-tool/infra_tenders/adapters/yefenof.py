@@ -104,7 +104,9 @@ def _extract_number(li) -> str | None:
         if "jobs_mob_label" in classes:
             continue
         txt = _clean(d.get_text())
-        if txt and txt != "מספר":
+        # מקבלים רק "מספר" אמיתי שמכיל ספרה — לא טקסט כמו "קול קורא להצטרפות
+        # למאגר" שמופיע באותה עמודה ומכווץ מכרזים שונים לאותו מפתח זיהוי.
+        if txt and txt != "מספר" and any(c.isdigit() for c in txt):
             return txt
     return None
 

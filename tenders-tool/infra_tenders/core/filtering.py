@@ -52,22 +52,21 @@ def classify(text: str, kw: Keywords) -> MatchResult:
     has_exec = bool(matched_exec)
     has_excl = bool(matched_excl)
 
-    # מילת ביצוע גוברת על החרגה (Design-Build / "תכנון וביצוע").
-    if has_excl and not has_exec:
-        # החרגה גוברת רק אם אין שום אינדיקציית תשתית חזקה.
-        if not has_infra:
-            return MatchResult(False, MatchConfidence.LOW,
-                               f"הוחרג: {matched_excl}")
-        # יש מילת תשתית אבל גם מילת רעש ואין ביצוע — ספק, כולל ב-low.
+    # 1) מילת ביצוע + תשתית גוברת על החרגה (Design-Build / "תכנון וביצוע").
+    if has_exec and has_infra:
+        return MatchResult(True, MatchConfidence.HIGH,
+                           f"תשתית={matched_infra} ביצוע={matched_exec}")
+
+    # 2) מילת החרגה (ללא ביצוע) = רעש (ייעוץ/תכנון/פיקוח/מאגר וכו') — לא לכלול.
+    if has_excl:
+        return MatchResult(False, MatchConfidence.LOW, f"הוחרג: {matched_excl}")
+
+    # 3) תשתית בלבד (בלי ביצוע ובלי החרגה) — כולל בביטחון נמוך לבדיקה ידנית.
+    if has_infra:
         return MatchResult(True, MatchConfidence.LOW,
-                           f"תשתית={matched_infra} אך גם החרגה={matched_excl}")
+                           f"תשתית={matched_infra} ללא מילת ביצוע")
 
-    if not has_infra:
-        return MatchResult(False, MatchConfidence.LOW, "אין מילת תשתית")
-
-    confidence = MatchConfidence.HIGH if has_exec else MatchConfidence.LOW
-    return MatchResult(True, confidence,
-                       f"תשתית={matched_infra} ביצוע={matched_exec or '-'}")
+    return MatchResult(False, MatchConfidence.LOW, "אין מילת תשתית")
 
 
 def _norm(text: str) -> str:
