@@ -52,3 +52,14 @@ def test_tender_dirname_format():
 def test_registry_has_iroads():
     assert get_adapter("iroads") is not None
     assert get_adapter("nonexistent") is None
+
+
+def test_apply_limit_per_source():
+    from scan import _apply_limit
+    ts = [_t("iroads", number=str(i)) for i in range(5)] + \
+         [_t("yefenof", number=str(i)) for i in range(4)]
+    limited = _apply_limit(ts, 3)
+    by_source = {}
+    for t in limited:
+        by_source[t.source] = by_source.get(t.source, 0) + 1
+    assert by_source == {"iroads": 3, "yefenof": 3}  # 3 לכל מקור

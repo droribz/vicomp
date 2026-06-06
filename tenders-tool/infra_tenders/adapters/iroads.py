@@ -40,7 +40,7 @@ class IroadsAdapter(GenericAdapter):
         BASE + "/umbraco/Surface/TendersLobbySurface/FilterCameras"
         "?tabId=1866&parentID=all-tenders&itemsPerPage=2000")
 
-    def fetch_open_tenders(self, page, client) -> list[Tender]:
+    def list_open_tenders(self, page, client) -> list[Tender]:
         if page is None:
             raise RuntimeError("מתאם iroads דורש דפדפן Playwright")
 
@@ -49,46 +49,27 @@ class IroadsAdapter(GenericAdapter):
         rows = parse_tender_list(html, base_url=BASE)
         log.info("[iroads] %d מכרזים ברשימה (כולל סגורים)", len(rows))
 
-        # שלב 1: סינון לפתוחים שלא פג מועדם (לפני כניסה לעמודי הפרטים).
-        open_rows = []
+        tenders = []
         for r in rows:
             if r["closed"]:
                 continue
             deadline = parse_hebrew_date(r["deadline_text"])
             if is_expired(deadline):
                 continue
-            r["deadline"] = deadline
-            open_rows.append(r)
-        log.info("[iroads] %d מכרזים פתוחים שלא פגו — אוסף קבצים", len(open_rows))
-
-        # שלב 2: לכל מכרז פתוח — כניסה לעמוד המכרז ואיסוף קבצים.
-        if not self.collect_files:
-            log.info("[iroads] תצוגה מהירה (dry-run) — מדלג על איסוף קבצים")
-
-        tenders = []
-        for i, r in enumerate(open_rows, 1):
-            files = []
-            if self.collect_files and r["detail_url"]:
-                try:
-                    detail_html = self._render(page, r["detail_url"])
-                    files = extract_files(detail_html, base_url=r["detail_url"],
-                                          doc_ext=self.DOC_EXT)
-                except Exception as exc:  # noqa: BLE001
-                    log.warning("[iroads] כשל בעמוד מכרז %s: %s",
-                                r["detail_url"], exc)
-                log.info("[iroads]   (%d/%d) %s — %d קבצים",
-                         i, len(open_rows), r["number"] or "?", len(files))
             tenders.append(Tender(
                 source=self.name,
                 publisher=self.publisher,
                 tender_number=r["number"],
                 title=r["title"],
                 category=r["category"],
-                submission_deadline=r["deadline"],
+                submission_deadline=deadline,
                 source_url=r["detail_url"] or self.LIST_ENDPOINT,
-                files=files,
+                files=[],
             ))
+        log.info("[iroads] %d מכרזים פתוחים שלא פגו", len(tenders))
         return tenders
+
+    # fetch_files יורש מ-GenericAdapter (רינדור עמוד המכרז + extract_files).
 
 
 # ===========================================================================

@@ -52,6 +52,7 @@ python scan.py --all                 :: סריקת כל המקורות הפעי�
 python scan.py --source iroads       :: סריקת מקור בודד
 python scan.py --list-sources        :: רשימת המקורות והסטטוס שלהם
 python scan.py --all --dry-run        :: הצגה בלבד — מה היה יורד, בלי הורדה
+python scan.py --all --limit 3        :: POC — עד 3 מכרזים מכל מקור (מהיר)
 ```
 
 בסיום מודפס סיכום בטרמינל, ונוצרים `tenders/_index.csv` ו-`tenders/report.html`.

@@ -71,10 +71,13 @@ def cmd_list_sources() -> None:
 
 # ---------------------------------------------------------------------------
 def scan_source(s: dict, page, client: PoliteClient,
-                kw: filtering.Keywords, *,
-                debug_dir: Path | None = None,
-                collect_files: bool = True) -> tuple[list[Tender], ScanResult]:
-    """סורק מקור בודד. מחזיר מכרזים (אחרי פילטור) ותוצאת סריקה."""
+                kw: filtering.Keywords, *, debug_dir: Path | None = None
+                ) -> tuple[list[Tender], ScanResult, object | None]:
+    """שלב 1 למקור בודד: רשימה + סינון תשתיות. מחזיר (מכרזים, תוצאה, מתאם).
+
+    איסוף הקבצים עצמו נעשה בשלב 2 (run), רק למכרזים הסופיים שנבחרו —
+    כך --limit מהיר ולא נכנסים לעמודים של מכרזים שייפסלו.
+    """
     name = s["name"]
     result = ScanResult(source=name, publisher=s["publisher"])
 
@@ -82,39 +85,38 @@ def scan_source(s: dict, page, client: PoliteClient,
     if adapter_cls is None:
         result.error = "מתאם לא ממומש"
         log.warning("[%s] מתאם לא ממומש — מדלג", name)
-        return [], result
+        return [], result, None
 
     creds = credentials_for(name)
     if s.get("requires_login") and not creds:
         result.blocked = True
         result.error = "דורש התחברות ואין פרטים ב-.env"
         log.warning("[%s] דורש התחברות ואין פרטים ב-.env — מדלג בצורה נקייה", name)
-        return [], result
+        return [], result, None
 
     cfg = SourceConfig(name=name, publisher=s["publisher"],
                        urls=s.get("urls", []),
                        requires_login=s.get("requires_login", False))
     adapter = adapter_cls(cfg, credentials=creds)
-    adapter.collect_files = collect_files
     if debug_dir is not None:
         adapter.debug_dir = debug_dir / name
 
     try:
-        raw = adapter.fetch_open_tenders(page, client)
+        raw = adapter.list_open_tenders(page, client)
     except AdapterBlocked as exc:
         result.blocked = True
         result.error = str(exc)
         log.warning("[%s] נחסם: %s — מדלג", name, exc)
-        return [], result
+        return [], result, None
     except LoginRequired as exc:
         result.blocked = True
         result.error = str(exc)
         log.warning("[%s] %s", name, exc)
-        return [], result
+        return [], result, None
     except Exception as exc:  # noqa: BLE001 — נפילת מקור לא מפילה את הסריקה
         result.error = str(exc)
         log.exception("[%s] שגיאה בסריקה: %s", name, exc)
-        return [], result
+        return [], result, None
 
     # --- פילטור תשתיות + מועד הגשה ---
     kept: list[Tender] = []
@@ -135,16 +137,17 @@ def scan_source(s: dict, page, client: PoliteClient,
     result.found = len(kept)
     log.info("[%s] %d מכרזי תשתיות פתוחים (מתוך %d פריטים)",
              name, len(kept), len(raw))
-    return kept, result
+    return kept, result, adapter
 
 
 # ---------------------------------------------------------------------------
-def run(selected: list[dict], *, dry_run: bool, debug: bool = False) -> None:
+def run(selected: list[dict], *, dry_run: bool, debug: bool = False,
+        limit: int | None = None) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     log_path = setup_logging(OUTPUT_DIR / "_logs")
     run_day = today_il()
-    log.info("התחלת סריקה · תאריך %s · dry-run=%s · debug=%s",
-             run_day, dry_run, debug)
+    log.info("התחלת סריקה · תאריך %s · dry-run=%s · debug=%s · limit=%s",
+             run_day, dry_run, debug, limit)
     debug_dir = (OUTPUT_DIR / "_logs" / "debug") if debug else None
 
     # 1) ארכוב אוטומטי של מכרזים שמועדם עבר (לא ב-dry-run).
@@ -156,39 +159,53 @@ def run(selected: list[dict], *, dry_run: bool, debug: bool = False) -> None:
     state = State(OUTPUT_DIR / "_state.json")
     results: list[ScanResult] = []
     all_tenders: list[Tender] = []
+    adapters: dict[str, object] = {}
+    rows: list[index_mod.IndexRow] = []
+    new_count = 0
 
-    # 2) סריקת המקורות (דפדפן משותף; שגיאה במקור אחד לא מפילה את השאר).
     with PoliteClient() as client:
-        # במצב דיבאג מריצים דפדפן גלוי כדי לראות מה קורה.
+        # דפדפן משותף לכל הסריקה. במצב דיבאג — גלוי.
         with browser_session(headless=not debug) as page:
+            # 2) שלב 1: רשימה + סינון לכל מקור (שגיאה במקור אחד לא מפילה).
             for s in selected:
-                tenders, result = scan_source(s, page, client, KEYWORDS,
-                                              debug_dir=debug_dir,
-                                              collect_files=not dry_run)
+                tenders, result, adapter = scan_source(
+                    s, page, client, KEYWORDS, debug_dir=debug_dir)
                 all_tenders.extend(tenders)
                 results.append(result)
+                if adapter is not None:
+                    adapters[s["name"]] = adapter
 
-        # 3) איחוד כפילויות בין מקורות.
-        merged = dedup.merge_duplicates(all_tenders)
-        log.info("לאחר איחוד כפילויות: %d מכרזים ייחודיים", len(merged))
+            # 3) איחוד כפילויות בין מקורות.
+            merged = dedup.merge_duplicates(all_tenders)
+            log.info("לאחר איחוד כפילויות: %d מכרזים ייחודיים", len(merged))
 
-        # 4) תיוק והורדה.
-        store = TenderStore(OUTPUT_DIR, client, dry_run=dry_run)
-        rows: list[index_mod.IndexRow] = []
-        new_count = 0
-        for t in merged:
-            key = t.identity_key()
-            is_new = state.is_new(key)
-            if is_new:
-                new_count += 1
-            state.mark_seen(key)
+            # 4) הגבלת כמות לכל מקור (--limit, להדגמה/POC).
+            if limit:
+                merged = _apply_limit(merged, limit)
+                log.info("הגבלת --limit %d לכל מקור: %d מכרזים להורדה",
+                         limit, len(merged))
 
-            outcome = store.store(t)
-            _tally(results, t.source, outcome.status)
+            # 5) שלב 2: רק עבור הנבחרים — שליפת קבצים מעמוד המכרז + תיוק.
+            store = TenderStore(OUTPUT_DIR, client, dry_run=dry_run)
+            for t in merged:
+                key = t.identity_key()
+                is_new = state.is_new(key)
+                if is_new:
+                    new_count += 1
+                state.mark_seen(key)
 
-            rows.append(_to_row(t, outcome, is_new=is_new))
+                if not dry_run:
+                    adapter = adapters.get(t.source)
+                    if adapter is not None:
+                        t.files = adapter.fetch_files(page, client, t)
+                        log.info("[%s] %s — %d קבצים", t.source,
+                                 t.tender_number or t.title[:30], len(t.files))
 
-    # 5) אינדקס + דוח + מצב.
+                outcome = store.store(t)
+                _tally(results, t.source, outcome.status)
+                rows.append(_to_row(t, outcome, is_new=is_new))
+
+    # 6) אינדקס + דוח + מצב.
     if not dry_run:
         index_mod.write_index(OUTPUT_DIR / "_index.csv", rows)
         report.write_report(
@@ -201,6 +218,18 @@ def run(selected: list[dict], *, dry_run: bool, debug: bool = False) -> None:
 
 
 # ---------------------------------------------------------------------------
+def _apply_limit(tenders: list[Tender], n: int) -> list[Tender]:
+    """משאיר עד n מכרזים לכל מקור (לפי סדר הופעתם). ל-POC/הדגמה."""
+    counts: dict[str, int] = {}
+    out: list[Tender] = []
+    for t in tenders:
+        c = counts.get(t.source, 0)
+        if c < n:
+            out.append(t)
+            counts[t.source] = c + 1
+    return out
+
+
 def _tally(results: list[ScanResult], source: str, status: str) -> None:
     r = next((x for x in results if x.source == source), None)
     if not r:
@@ -282,6 +311,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="הצג מה היה יורד בלי להוריד בפועל")
     parser.add_argument("--debug", action="store_true",
                         help="דפדפן גלוי + שמירת HTML וצילום מסך לכל עמוד (לאבחון)")
+    parser.add_argument("--limit", type=int, metavar="N",
+                        help="הורד עד N מכרזים מכל מקור (להדגמה/POC)")
     args = parser.parse_args(argv)
 
     load_dotenv(ROOT / ".env")
@@ -302,7 +333,7 @@ def main(argv: list[str] | None = None) -> int:
             print("אין מקורות פעילים ב-config/sources.yaml.")
             return 2
 
-    run(selected, dry_run=args.dry_run, debug=args.debug)
+    run(selected, dry_run=args.dry_run, debug=args.debug, limit=args.limit)
     return 0
 
 

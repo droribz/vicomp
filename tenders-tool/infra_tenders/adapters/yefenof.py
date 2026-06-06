@@ -36,7 +36,7 @@ class YefenofAdapter(GenericAdapter):
     publisher = "יפה נוף"
     LIST_URL = BASE + "/Tenders"
 
-    def fetch_open_tenders(self, page, client) -> list[Tender]:
+    def list_open_tenders(self, page, client) -> list[Tender]:
         if page is None:
             raise RuntimeError("מתאם yefenof דורש דפדפן Playwright")
 
@@ -47,30 +47,29 @@ class YefenofAdapter(GenericAdapter):
         log.info("[yefenof] %d מכרזים ברשימה, %d פתוחים",
                  len(rows), len(open_rows))
 
-        tenders = []
-        for i, r in enumerate(open_rows, 1):
-            files, deadline = [], None
-            if self.collect_files and r["detail_url"]:
-                try:
-                    detail_html = self._render(page, r["detail_url"])
-                    files = extract_files(detail_html, base_url=r["detail_url"],
-                                          doc_ext=self.DOC_EXT)
-                    deadline = _find_deadline(detail_html)
-                except Exception as exc:  # noqa: BLE001
-                    log.warning("[yefenof] כשל בעמוד מכרז %s: %s",
-                                r["detail_url"], exc)
-                if is_expired(deadline):
-                    continue  # מועד עבר למרות סטטוס פתוח
-                log.info("[yefenof]   (%d/%d) %s — %d קבצים",
-                         i, len(open_rows), r["number"] or "?", len(files))
-            tenders.append(Tender(
-                source=self.name, publisher=self.publisher,
-                tender_number=r["number"], title=r["title"],
-                submission_deadline=deadline,
-                source_url=r["detail_url"] or self.LIST_URL,
-                files=files,
-            ))
-        return tenders
+        # הרשימה לא כוללת מועד הגשה — הסטטוס פתוח/סגור קובע; המועד נשלף בשלב 2.
+        return [Tender(
+            source=self.name, publisher=self.publisher,
+            tender_number=r["number"], title=r["title"],
+            submission_deadline=None,
+            source_url=r["detail_url"] or self.LIST_URL, files=[])
+            for r in open_rows]
+
+    def fetch_files(self, page, client, tender):
+        if not tender.source_url:
+            return []
+        try:
+            html = self._render(page, tender.source_url)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("[yefenof] כשל בעמוד מכרז %s: %s",
+                        tender.source_url, exc)
+            return []
+        # מועד ההגשה מופיע רק בעמוד המכרז — מעדכנים אותו על ה-Tender.
+        deadline = _find_deadline(html)
+        if deadline:
+            tender.submission_deadline = deadline
+        return extract_files(html, base_url=tender.source_url,
+                             doc_ext=self.DOC_EXT)
 
 
 def parse_yefenof_list(html: str, *, base_url: str = BASE) -> list[dict]:

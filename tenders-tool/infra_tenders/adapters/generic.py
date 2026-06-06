@@ -218,7 +218,7 @@ class GenericAdapter(BaseAdapter):
     #: תיקיית דיבאג — אם מוגדרת, נשמרים HTML + צילום מסך לכל עמוד שנטען.
     debug_dir: Path | None = None
 
-    def fetch_open_tenders(self, page, client) -> list[Tender]:
+    def list_open_tenders(self, page, client) -> list[Tender]:
         if page is None:
             raise RuntimeError(f"מתאם {self.name} דורש דפדפן Playwright")
 
@@ -245,11 +245,29 @@ class GenericAdapter(BaseAdapter):
                 deadline = parse_hebrew_date(c.get("deadline_text"))
                 if is_expired(deadline):
                     continue
-                t = self._build_tender(page, c, deadline)
-                if t:
-                    tenders.append(t)
-
+                tenders.append(Tender(
+                    source=self.name, publisher=self.publisher,
+                    tender_number=c.get("number"),
+                    title=c.get("title") or "ללא כותרת",
+                    submission_deadline=deadline,
+                    publication_date=parse_hebrew_date(c.get("publication_text")),
+                    source_url=c.get("detail_url") or c.get("list_url", ""),
+                    files=[]))
         return tenders
+
+    def fetch_files(self, page, client, tender):
+        if not (self.FOLLOW_DETAIL and tender.source_url):
+            return []
+        try:
+            html = self._render(page, tender.source_url)
+            return extract_files(html, base_url=tender.source_url,
+                                 doc_ext=self.DOC_EXT)
+        except AdapterBlocked:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            log.warning("[%s] כשל בטעינת עמוד מכרז %s: %s",
+                        self.name, tender.source_url, exc)
+            return []
 
     # --- רינדור עמוד עם Playwright + זיהוי חסימה ----------------------------
     def _render(self, page, url: str) -> str:
@@ -288,29 +306,3 @@ class GenericAdapter(BaseAdapter):
                      self.debug_dir / f"{slug}.png", status)
         except Exception as exc:  # noqa: BLE001
             log.debug("[%s] כשל בשמירת דיבאג: %s", self.name, exc)
-
-    # --- בניית Tender מלא ---------------------------------------------------
-    def _build_tender(self, page, c: dict, deadline) -> Tender | None:
-        detail_url = c.get("detail_url")
-        files: list[TenderFile] = []
-        if self.FOLLOW_DETAIL and detail_url:
-            try:
-                detail_html = self._render(page, detail_url)
-                files = extract_files(detail_html, base_url=detail_url,
-                                      doc_ext=self.DOC_EXT)
-            except AdapterBlocked:
-                raise
-            except Exception as exc:  # noqa: BLE001
-                log.warning("[%s] כשל בטעינת עמוד מכרז %s: %s",
-                            self.name, detail_url, exc)
-
-        return Tender(
-            source=self.name,
-            publisher=self.publisher,
-            tender_number=c.get("number"),
-            title=c.get("title") or "ללא כותרת",
-            submission_deadline=deadline,
-            publication_date=parse_hebrew_date(c.get("publication_text")),
-            source_url=detail_url or c.get("list_url", ""),
-            files=files,
-        )

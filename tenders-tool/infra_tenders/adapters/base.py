@@ -43,15 +43,23 @@ class BaseAdapter:
         self.config = config
         self.credentials = credentials or {}
 
-    def fetch_open_tenders(self, page, client: PoliteClient) -> list[Tender]:
-        """מחזיר את כל המכרזים הפתוחים מהמקור.
+    # עבודה בשני שלבים: קודם רשימה מהירה (מטא-דאטה בלבד), ואז — רק לאחר
+    # סינון תשתיות והגבלת כמות — נכנסים לעמודי המכרז לאיסוף קבצים. כך
+    # --limit מהיר באמת ולא מבזבזים כניסה לעמודים של מכרזים שייפסלו.
 
-        Args:
-            page: עמוד Playwright (לאתרים כבדי-JS / התחברות). יכול להיות None
-                  אם המתאם משתמש רק ב-httpx.
-            client: PoliteClient להורדות/בקשות ישירות.
+    def list_open_tenders(self, page, client: PoliteClient) -> list[Tender]:
+        """שלב 1: מחזיר את המכרזים הפתוחים עם מטא-דאטה בלבד (בלי קבצים).
+
+        כל Tender מוחזר עם source_url = עמוד המכרז (לשליפת קבצים בשלב 2).
         """
         raise NotImplementedError
+
+    def fetch_files(self, page, client: PoliteClient, tender: Tender):
+        """שלב 2: נכנס לעמוד המכרז ומחזיר את קישורי הקבצים להורדה.
+
+        רשאי גם לעדכן את tender.submission_deadline אם הוא מופיע רק שם.
+        """
+        return []
 
 
 # ---------------------------------------------------------------------------
