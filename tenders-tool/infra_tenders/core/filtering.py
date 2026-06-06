@@ -14,6 +14,7 @@ class Keywords:
     infrastructure: list[str]
     execution: list[str]
     exclude: list[str]
+    hard_exclude: list[str]
 
     @classmethod
     def load(cls, path: str | Path) -> "Keywords":
@@ -22,6 +23,7 @@ class Keywords:
             infrastructure=[_norm(k) for k in data.get("infrastructure", [])],
             execution=[_norm(k) for k in data.get("execution", [])],
             exclude=[_norm(k) for k in data.get("exclude", [])],
+            hard_exclude=[_norm(k) for k in data.get("hard_exclude", [])],
         )
 
 
@@ -44,6 +46,14 @@ def classify(text: str, kw: Keywords) -> MatchResult:
       ביטחון: high אם has_infra וגם has_exec, אחרת low.
     """
     t = _norm(text)
+
+    # 0) החרגה קשיחה (קול קורא / מאגר ספקים-יועצים / RFI) — לעולם לא לכלול,
+    #    גם אם יש מילת ביצוע. אלו פניות מקדימות/מאגרים, לא מכרזי ביצוע.
+    matched_hard = [k for k in kw.hard_exclude if k and k in t]
+    if matched_hard:
+        return MatchResult(False, MatchConfidence.LOW,
+                           f"החרגה קשיחה: {matched_hard}")
+
     matched_infra = [k for k in kw.infrastructure if k and k in t]
     matched_exec = [k for k in kw.execution if k and k in t]
     matched_excl = [k for k in kw.exclude if k and k in t]

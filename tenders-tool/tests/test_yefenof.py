@@ -55,12 +55,12 @@ def test_number_requires_digit():
 def test_consultant_roster_excluded():
     from infra_tenders.core.filtering import Keywords, classify
     kw = Keywords.load(FIXTURES.parent.parent / "config" / "keywords.yaml")
-    # מאגרי יועצים/מתכננים/מפקחים — מוחרגים למרות אזכור תחום תשתית.
+    # "קול קורא" / מאגרים מוחרגים קשיחות — גם עם מילת ביצוע ("בנייה").
+    assert classify('קול קורא מאגר מנה"פ בנייה ציבורית בהיקף כספי', kw).include is False
     assert classify("קול קורא הצטרפות למאגר יועצי חשמל ותאורה", kw).include is False
-    assert classify("קול קורא הצטרפות למאגר מתכנני הידרולוגיה וניקוז", kw).include is False
     assert classify("קול קורא לסוקרי גשרים ומבני דרך", kw).include is False
-    # אבל "קול קורא" עם ביצוע/הקמה כן נכלל (Design-Build):
-    assert classify("קול קורא לתכנון והקמת גשר", kw).include is True
+    # אבל מכרז ביצוע אמיתי (בלי "קול קורא"/מאגר) כן נכלל:
+    assert classify("מכרז לתכנון וביצוע מחלף וגשר", kw).include is True
 
 
 def test_registered():
