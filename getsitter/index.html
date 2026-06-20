@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GetSitter | שמרטף/ית מאומת/ת בלחיצת כפתור</title>
+  <meta name="description" content="GetSitter – האפליקציה שמחברת הורים לשמרטפים מאומתים בקרבת הבית, בלחיצת כפתור. בדיקת רקע פלילי, תעודת יושר, אימות זהות ודירוגים אמיתיים. בטיחות הילדים מעל הכל." />
+  <meta name="theme-color" content="#5B4FE5" />
+  <meta property="og:title" content="GetSitter | שמרטף/ית מאומת/ת בלחיצת כפתור" />
+  <meta property="og:description" content="הורים מוצאים שמרטפים מאומתים ובטוחים בקרבת מקום – עם בדיקות רקע, תעודת יושר ודירוגים." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="he_IL" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%235B4FE5'/><text y='72' x='50' font-size='62' text-anchor='middle' fill='white'>♥</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <a href="#" class="logo"><span class="mark">♥</span> Get<b>Sitter</b></a>
+      <nav class="nav-links" id="nav-links">
+        <a href="#safety">בטיחות</a>
+        <a href="#how">איך זה עובד</a>
+        <a href="#sitters">שמרטפים</a>
+        <a href="#become">להיות שמרטף/ית</a>
+        <a href="#faq">שאלות נפוצות</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#become" class="btn btn-ghost btn-sm">הצטרפו כשמרטף/ית</a>
+        <a href="#hero" class="btn btn-primary btn-sm">מצאו שמרטף/ית</a>
+        <button class="burger" id="burger" aria-label="תפריט">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">🛡️ בטיחות הילדים מעל הכל</span>
+        <h1>שמרטף/ית <span class="hl">מאומת/ת</span> ליד הבית,<br>בלחיצת כפתור</h1>
+        <p class="sub">GetSitter מחברת הורים לשמרטפים מקצועיים ובטוחים בקרבת מקום — כל אחד ואחת עברו בדיקת רקע פלילי, תעודת יושר ואימות זהות. כמו הזמנת מונית, רק לשקט נפשי.</p>
+
+        <form class="search-card" id="search-form">
+          <div class="field">
+            <label>📍 עיר / שכונה</label>
+            <input id="f-city" placeholder="תל אביב, רמת גן..." />
+          </div>
+          <div class="field">
+            <label>🗓️ מתי?</label>
+            <input type="date" id="f-date" />
+          </div>
+          <button class="btn btn-primary" type="submit">חיפוש</button>
+        </form>
+
+        <div class="trust-row">
+          <span class="t"><span class="dot-safe"></span> <b>100%</b> מאומתים</span>
+          <span class="t">⭐ <b>4.9</b> דירוג ממוצע</span>
+          <span class="t">⏱️ זמן הגעה <b>~15 דק'</b></span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="mini-map"><span class="pin a"></span><span class="pin b"></span><span class="pin c"></span></div>
+            <div class="mini-card"><div class="av" style="background:#5B4FE5">נל</div><div class="mc-body"><div class="mc-name">נועה ל. <span class="vbadge">✔</span></div><div class="mc-sub">⭐ 4.9 · 1.2 ק"מ</div></div><div class="mc-price">₪65</div></div>
+            <div class="mini-card"><div class="av" style="background:#18b26b">למ</div><div class="mc-body"><div class="mc-name">ליאל מ. <span class="vbadge">✔</span></div><div class="mc-sub">⭐ 4.95 · 1.9 ק"מ</div></div><div class="mc-price">₪75</div></div>
+            <div class="mini-card"><div class="av" style="background:#ff6b81">מפ</div><div class="mc-body"><div class="mc-name">מאיה פ. <span class="vbadge">✔</span></div><div class="mc-sub">⭐ 5.0 · 0.8 ק"מ</div></div><div class="mc-price">₪60</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="stats">
+        <div class="s"><div class="n">12,400+</div><div class="l">שמרטפים מאומתים</div></div>
+        <div class="s"><div class="n">4.9★</div><div class="l">דירוג ממוצע</div></div>
+        <div class="s"><div class="n">100%</div><div class="l">עברו בדיקת רקע</div></div>
+        <div class="s"><div class="n">~15 דק'</div><div class="l">זמן הגעה ממוצע</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAFETY -->
+  <section class="safety" id="safety">
+    <div class="container">
+      <div class="center" style="max-width:680px">
+        <span class="eyebrow">🛡️ בטיחות מעל הכל</span>
+        <h2 class="title">כל שמרטף/ית עובר/ת מסלול אימות מחמיר</h2>
+        <p class="lead center">לא נסתפק בפחות. לפני שמישהו מתקבל לפלטפורמה, הוא עובר את כל השלבים הבאים — כדי שתוכלו להיות רגועים לחלוטין.</p>
+      </div>
+      <div class="grid-3">
+        <div class="feature"><div class="ico">🔎</div><h3>בדיקת רקע פלילי</h3><p>כל מועמד/ת עובר/ת בדיקת רקע פלילי מקיפה דרך גורם מוסמך, כולל בדיקת עבירות מין ואלימות.</p></div>
+        <div class="feature"><div class="ico">📜</div><h3>תעודת יושר ממשטרת ישראל</h3><p>חובה להציג תעודת יושר רשמית. בלעדיה אין כניסה לפלטפורמה — ללא יוצא מן הכלל.</p></div>
+        <div class="feature"><div class="ico">🪪</div><h3>אימות זהות ביומטרי</h3><p>אימות מול תעודה מזהה רשמית והשוואת תמונה, כדי לוודא שכל פרופיל הוא אדם אמיתי ומאומת.</p></div>
+        <div class="feature"><div class="ico">🎙️</div><h3>ראיון אישי + הכשרה</h3><p>שיחת היכרות עם צוות הבטיחות שלנו והכשרה בנושאי עזרה ראשונה ובטיחות ילדים.</p></div>
+        <div class="feature"><div class="ico">📍</div><h3>מעקב חי ושיתוף מיקום</h3><p>עקבו אחר הגעת השמרטף/ית במפה בזמן אמת, ושתפו את המיקום עם איש קשר לחירום.</p></div>
+        <div class="feature"><div class="ico">🆘</div><h3>כפתור מצוקה (SOS)</h3><p>גישה מיידית לחיוג חירום ולצוות התמיכה שלנו 24/7, ישירות מתוך האפליקציה.</p></div>
+        <div class="feature"><div class="ico">⭐</div><h3>דירוגים מאומתים בלבד</h3><p>רק הורים שהזמינו בפועל יכולים לדרג. אין ביקורות מזויפות — רק חוויות אמיתיות.</p></div>
+        <div class="feature"><div class="ico">🛡️</div><h3>ביטוח אחריות</h3><p>כל הזמנה מכוסה בביטוח אחריות, לשקט נפשי מלא לאורך כל זמן השמירה.</p></div>
+        <div class="feature"><div class="ico">🔁</div><h3>בדיקות חוזרות</h3><p>בדיקות רקע מתחדשות מדי שנה ומעקב מתמשך אחר התנהלות — האמון לא מובן מאליו.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="container">
+      <div class="center" style="max-width:640px">
+        <span class="eyebrow">⚡ פשוט וזריז</span>
+        <h2 class="title">איך זה עובד — להורים</h2>
+        <p class="lead center">מהרגע שאתם צריכים עזרה ועד לשמרטף/ית מאומת/ת בדלת — בארבעה צעדים.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="num">1</div><h4>הזינו מיקום ומועד</h4><p>איפה, מתי וכמה ילדים — וקבלו רשימת שמרטפים זמינים בקרבת מקום.</p></div>
+        <div class="step"><div class="num">2</div><h4>בחרו לפי דירוג</h4><p>השוו פרופילים, דירוגים, תעריפים והתמחויות — כולם מאומתים מראש.</p></div>
+        <div class="step"><div class="num">3</div><h4>הזמינו ועקבו</h4><p>שלחו בקשה, קבלו אישור, ועקבו אחר ההגעה במפה החיה בזמן אמת.</p></div>
+        <div class="step"><div class="num">4</div><h4>שלמו ודרגו</h4><p>תשלום מאובטח דרך האפליקציה בסיום, ודירוג שיעזור להורים הבאים.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SITTERS -->
+  <section class="sitters" id="sitters">
+    <div class="container">
+      <span class="eyebrow">👀 זמינים עכשיו</span>
+      <h2 class="title">שמרטפים מאומתים באזורך</h2>
+      <p class="lead">כל הפרופילים עברו בדיקת רקע, תעודת יושר ואימות זהות. לחצו על כרטיס כדי לצפות ולהזמין.</p>
+      <div class="filters">
+        <span class="chip active" data-filter="all">הכל</span>
+        <span class="chip" data-filter="0-3">גילאי 0-3</span>
+        <span class="chip" data-filter="3-8">גילאי 3-8</span>
+        <span class="chip" data-filter="6-12">גילאי 6-12</span>
+        <span class="chip" data-filter="עזרה בשיעורים">עזרה בשיעורים</span>
+        <span class="chip" data-filter="צרכים מיוחדים">צרכים מיוחדים</span>
+      </div>
+      <div class="sitter-grid" id="sitter-grid"></div>
+      <p class="meta center" style="margin-top:1.4rem;color:var(--muted)">* נתוני הדגמה לצורך אב-טיפוס בלבד</p>
+    </div>
+  </section>
+
+  <!-- BECOME A SITTER -->
+  <section class="become" id="become">
+    <div class="container grid-2">
+      <div>
+        <span class="eyebrow" style="color:#b9b0ff">💜 הצטרפו אלינו</span>
+        <h2 class="title">רוצים להיות שמרטף/ית ב-GetSitter?</h2>
+        <p class="lead">קבעו לעצמכם את התעריף ואת הזמינות, ועבדו עם משפחות באזור שלכם. אבל קודם — חובה לעבור את תהליך האימות המחמיר שלנו. אנחנו מתפשרים על הכל, חוץ מבטיחות.</p>
+        <ul class="req-list">
+          <li><span class="ck">✔</span><div><b>גיל 18 ומעלה</b><span>ותעודת זהות תקפה לאימות.</span></div></li>
+          <li><span class="ck">✔</span><div><b>תעודת יושר ממשטרת ישראל</b><span>נקייה מעבירות — תנאי סף מוחלט.</span></div></li>
+          <li><span class="ck">✔</span><div><b>הסכמה לבדיקת רקע פלילי</b><span>כולל עבירות מין ואלימות, דרך גורם מוסמך.</span></div></li>
+          <li><span class="ck">✔</span><div><b>אימות זהות וראיון אישי</b><span>שיחה עם צוות הבטיחות שלנו.</span></div></li>
+          <li><span class="ck">✔</span><div><b>ניסיון מוכח בטיפול בילדים</b><span>המלצות יתקבלו בברכה.</span></div></li>
+        </ul>
+        <button class="btn btn-safe" data-wizard style="margin-top:1.4rem">התחילו תהליך הרשמה →</button>
+      </div>
+      <div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:26px">
+          <h3 style="font-weight:900;font-size:1.3rem;margin-bottom:.4rem">למה לעבוד איתנו?</h3>
+          <p style="color:#cfc9e6;margin-bottom:1.2rem">פלטפורמה שמכבדת אתכם בדיוק כמו שהיא מגנה על הילדים.</p>
+          <div class="grid-3" style="grid-template-columns:1fr 1fr;gap:12px;margin:0">
+            <div class="feature" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#fff"><div class="ico" style="background:rgba(24,178,107,.2)">💰</div><h3 style="color:#fff">תעריף שלכם</h3><p style="color:#cfc9e6">אתם קובעים כמה אתם גובים לשעה.</p></div>
+            <div class="feature" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#fff"><div class="ico" style="background:rgba(91,79,229,.25)">🗓️</div><h3 style="color:#fff">גמישות מלאה</h3><p style="color:#cfc9e6">עובדים מתי שמתאים לכם.</p></div>
+            <div class="feature" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#fff"><div class="ico" style="background:rgba(245,165,36,.2)">⚡</div><h3 style="color:#fff">תשלום מהיר</h3><p style="color:#cfc9e6">העברה ישירה לחשבון לאחר כל שמירה.</p></div>
+            <div class="feature" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#fff"><div class="ico" style="background:rgba(255,107,129,.2)">🛡️</div><h3 style="color:#fff">מוגנים</h3><p style="color:#cfc9e6">ביטוח ותמיכה 24/7 בכל הזמנה.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEWS -->
+  <section id="reviews">
+    <div class="container">
+      <div class="center" style="max-width:600px">
+        <span class="eyebrow">⭐ הורים מספרים</span>
+        <h2 class="title">שקט נפשי, אמיתי</h2>
+      </div>
+      <div class="reviews-grid">
+        <div class="review"><div class="stars">★★★★★</div><p>"בפעם הראשונה הרגשתי בנוח להשאיר את התינוקת עם מישהי שלא הכרתי. העובדה שראיתי את תעודת היושר והאימות הרגיעה אותי לגמרי."</p><div class="who"><div class="av" style="background:#5B4FE5">רכ</div><div><b>רוני כהן</b><small>אמא לאחת, תל אביב</small></div></div></div>
+        <div class="review"><div class="stars">★★★★★</div><p>"הזמנתי שמרטף ברגע האחרון לפני אירוע, ותוך 20 דקות הגיע מישהו מדהים ומאומת. בדיוק כמו להזמין מונית, רק הרבה יותר חשוב."</p><div class="who"><div class="av" style="background:#18b26b">דא</div><div><b>דנה אבני</b><small>אמא לשניים, גבעתיים</small></div></div></div>
+        <div class="review"><div class="stars">★★★★★</div><p>"המעקב במפה והאפשרות לשתף מיקום עם אשתי נתנו לנו ביטחון מלא. הילדים אהבו, ואנחנו כבר לקוחות קבועים."</p><div class="who"><div class="av" style="background:#ff6b81">אש</div><div><b>אבי שמש</b><small>אבא לשלושה, הרצליה</small></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <div class="center" style="max-width:560px">
+        <span class="eyebrow">❓ שאלות נפוצות</span>
+        <h2 class="title">כל מה שרציתם לדעת</h2>
+      </div>
+      <div class="faq center" style="margin-top:1.6rem">
+        <div class="qa"><button>איך אתם מוודאים שהשמרטפים בטוחים? <span class="pm">+</span></button><div class="ans"><p>כל שמרטף/ית עובר/ת בדיקת רקע פלילי מקיפה, חובת הצגת תעודת יושר ממשטרת ישראל, אימות זהות ביומטרי וראיון אישי עם צוות הבטיחות שלנו. הבדיקות מתחדשות מדי שנה.</p></div></div>
+        <div class="qa"><button>כמה מהר אפשר לקבל שמרטף/ית? <span class="pm">+</span></button><div class="ans"><p>במרבית האזורים זמן ההגעה הממוצע הוא כ-15 דקות. ניתן גם להזמין מראש לתאריך ושעה מדויקים.</p></div></div>
+        <div class="qa"><button>איך עובד התשלום? <span class="pm">+</span></button><div class="ans"><p>התשלום מתבצע באופן מאובטח דרך האפליקציה בסיום השמירה, לפי התעריף השעתי של השמרטף/ית. לא תחויבו עד שהבקשה תאושר.</p></div></div>
+        <div class="qa"><button>מה קורה במצב חירום? <span class="pm">+</span></button><div class="ans"><p>בכל מסך באפליקציה יש כפתור מצוקה (SOS) המחבר מיידית לחיוג חירום ולצוות התמיכה שלנו הזמין 24/7. בנוסף ניתן לשתף את המיקום בזמן אמת עם איש קשר.</p></div></div>
+        <div class="qa"><button>אני רוצה להיות שמרטף/ית — מה התנאים? <span class="pm">+</span></button><div class="ans"><p>צריך להיות בני 18+, להציג תעודת יושר נקייה, להסכים לבדיקת רקע פלילי ואימות זהות, ולעבור ראיון אישי. ניתן להתחיל את התהליך דרך כפתור "הצטרפו כשמרטף/ית".</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="container">
+      <div class="cta-final">
+        <h2>שקט נפשי, בלחיצת כפתור</h2>
+        <p>הורידו את GetSitter והצטרפו לאלפי הורים שכבר מוצאים שמרטפים מאומתים ובטוחים בקרבת מקום.</p>
+        <div class="store-row">
+          <div class="store"><span class="big"></span><div style="text-align:right"><small>הורידו מ-</small>App Store</div></div>
+          <div class="store"><span class="big">▶</span><div style="text-align:right"><small>זמין ב-</small>Google Play</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div>
+          <a href="#" class="logo" style="color:#fff;margin-bottom:.6rem">♥ Get<b style="color:#b9b0ff">Sitter</b></a>
+          <p style="color:#a39ec0;font-size:.92rem;max-width:280px">שמרטפים מאומתים, בלחיצת כפתור. בטיחות הילדים מעל הכל.</p>
+        </div>
+        <div><h5>למשפחות</h5><a href="#how">איך זה עובד</a><a href="#sitters">חיפוש שמרטף/ית</a><a href="#safety">בטיחות</a><a href="#faq">שאלות נפוצות</a></div>
+        <div><h5>לשמרטפים</h5><a href="#become">הצטרפות</a><a href="#become">דרישות סף</a><a href="#become">תעריפים</a></div>
+        <div><h5>החברה</h5><a href="#">אודות</a><a href="#">תקנון</a><a href="#">פרטיות</a><a href="#">צרו קשר</a></div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 GetSitter — אב-טיפוס להדגמה</span>
+        <span>נבנה עם 💜 לבטיחות ילדים</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- modal + toast -->
+  <div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
