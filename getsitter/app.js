@@ -1,60 +1,38 @@
-/* ===== GetSitter prototype logic — standalone front-end demo =====
-   Demo data only. No real users / no real background checks are performed here. */
+/* ===== GetSitter prototype logic — front-end app on top of GS store =====
+   Demo only: no real background checks, no real payments. Data persists in
+   the browser (localStorage) so accounts, bookings and reviews survive reloads. */
 
 const AV_COLORS = ['#5B4FE5','#ff6b81','#18b26b','#f5a524','#7a6cff','#e8568c','#2bb3c0','#9b59b6'];
-function avatarColor(name){
-  let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0;
-  return AV_COLORS[h%AV_COLORS.length];
-}
-function initials(name){
-  const p=name.trim().split(/\s+/);
-  return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();
-}
-
-/* ---- demo sitters ---- */
-const SITTERS = [
-  {id:1,name:'נועה לוי',age:24,city:'תל אביב',dist:1.2,rating:4.9,reviews:182,rate:65,exp:6,
-   tags:['גילאי 0-3','עזרה בשיעורים'],bio:'סטודנטית לחינוך, מנוסה עם תינוקות ופעוטות. אוהבת פעילות יצירתית ומשחקי תנועה.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות','עזרה ראשונה']},
-  {id:2,name:'יואב כהן',age:28,city:'רמת גן',dist:2.4,rating:4.8,reviews:97,rate:70,exp:8,
-   tags:['גילאי 3-8','ספורט'],bio:'מדריך נוער ותיק, מתמחה בפעילות חוץ וספורט. סבלני ואחראי.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות','עזרה ראשונה']},
-  {id:3,name:'מאיה פרידמן',age:22,city:'תל אביב',dist:0.8,rating:5.0,reviews:64,rate:60,exp:4,
-   tags:['גילאי 0-3','דוברת אנגלית'],bio:'דו-לשונית, נהדרת עם תינוקות. לומדת ריפוי בעיסוק.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות']},
-  {id:4,name:'דניאל ביטון',age:31,city:'הרצליה',dist:5.1,rating:4.7,reviews:210,rate:80,exp:11,
-   tags:['גילאי 6-12','עזרה בשיעורים'],bio:'מורה פרטי במתמטיקה ומדעים, משלב למידה והנאה. ניסיון רב עם משפחות.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות','עזרה ראשונה']},
-  {id:5,name:'שירה אזולאי',age:26,city:'גבעתיים',dist:3.0,rating:4.9,reviews:143,rate:68,exp:7,
-   tags:['גילאי 0-3','צרכים מיוחדים'],bio:'בעלת הכשרה לעבודה עם ילדים עם צרכים מיוחדים. רגישה, חמה ומקצועית.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות','עזרה ראשונה']},
-  {id:6,name:'איתי שלום',age:23,city:'רמת גן',dist:2.9,rating:4.6,reviews:51,rate:58,exp:3,
-   tags:['גילאי 3-8','מוזיקה'],bio:'מורה לגיטרה, אוהב להעביר חוגי מוזיקה קטנים לילדים. אנרגטי ומלא סבלנות.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות']},
-  {id:7,name:'ליאל מזרחי',age:29,city:'תל אביב',dist:1.9,rating:4.95,reviews:176,rate:75,exp:9,
-   tags:['גילאי 0-3','לינה'],bio:'אחות בהכשרתה, זמינה גם למשמרות לילה ולינה. מקצועית ואמינה.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות','עזרה ראשונה']},
-  {id:8,name:'תמר גולן',age:25,city:'הרצליה',dist:4.7,rating:4.8,reviews:88,rate:66,exp:5,
-   tags:['גילאי 3-8','יצירה'],bio:'אומנית ומדריכת יצירה, הופכת כל בית להרפתקה. אחראית ומסורה.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות']},
-  {id:9,name:'עומר נחום',age:27,city:'גבעתיים',dist:3.4,rating:4.7,reviews:120,rate:64,exp:6,
-   tags:['גילאי 6-12','עזרה בשיעורים'],bio:'מורה לאנגלית, עוזר בשיעורי בית ומשלב משחקי חשיבה.',
-   verif:['רקע פלילי','תעודת יושר','אימות זהות','עזרה ראשונה']},
-];
-
+function avatarColor(name){let h=0;for(const c of (name||'?'))h=(h*31+c.charCodeAt(0))>>>0;return AV_COLORS[h%AV_COLORS.length];}
+function initials(name){const p=(name||'?').trim().split(/\s+/);return (p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
+function starsStr(r){const n=Math.round(r);return '★'.repeat(n)+'☆'.repeat(5-n);}
 const $=(s,el=document)=>el.querySelector(s);
 const $$=(s,el=document)=>[...el.querySelectorAll(s)];
 
-/* ---- render sitter cards ---- */
+const STATUS = {
+  pending:{label:'ממתין לאישור',color:'var(--warn)'},
+  confirmed:{label:'מאושר',color:'var(--safe)'},
+  completed:{label:'הושלם',color:'var(--primary)'},
+  cancelled:{label:'בוטל',color:'#c0392b'},
+};
+
+/* ---------- modal / toast ---------- */
+const overlay=()=>$('#overlay'), modalEl=()=>$('#modal');
+function openModal(html){ modalEl().innerHTML=html; overlay().classList.add('show'); document.body.style.overflow='hidden'; }
+function closeModal(){ overlay().classList.remove('show'); document.body.style.overflow=''; }
+let toastT;
+function toast(msg){const t=$('#toast');t.innerHTML='✔ '+msg.replace(/^✔\s*/,'');t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+
+/* ---------- sitter cards / search ---------- */
+let activeFilter='all';
 function sitterCard(s){
-  const stars='★'.repeat(Math.round(s.rating))+'☆'.repeat(5-Math.round(s.rating));
   return `<article class="sitter" data-id="${s.id}">
     <div class="top">
       <div class="av-lg" style="background:${avatarColor(s.name)}">${initials(s.name)}</div>
       <div>
         <div class="nm">${s.name} <span class="vbadge" title="מאומת/ת">✔</span></div>
         <div class="meta">גיל ${s.age} · ${s.city} · ${s.dist} ק"מ ממך</div>
-        <div class="rating"><span class="stars">${stars}</span> ${s.rating} <span class="meta">(${s.reviews})</span></div>
+        <div class="rating"><span class="stars">${starsStr(s.rating)}</span> ${s.rating} <span class="meta">(${s.reviews})</span></div>
       </div>
     </div>
     <div class="body">
@@ -67,29 +45,87 @@ function sitterCard(s){
     </div>
   </article>`;
 }
-
-let activeFilter='all';
 function renderSitters(){
   const city=($('#f-city')?.value||'').trim();
-  let list=SITTERS.slice();
+  let list=GS.sitters().slice();
   if(city) list=list.filter(s=>s.city.includes(city)||city.includes(s.city));
   if(activeFilter!=='all') list=list.filter(s=>s.tags.some(t=>t.includes(activeFilter)));
   const wrap=$('#sitter-grid');
   if(!list.length){wrap.innerHTML=`<div class="empty">לא נמצאו שמרטפים תואמים. נסו לשנות את הסינון 🙂</div>`;return;}
-  // sort by rating
   list.sort((a,b)=>b.rating-a.rating);
   wrap.innerHTML=list.map(sitterCard).join('');
 }
 
-/* ---- modal helpers ---- */
-const overlay=$('#overlay'), modal=$('#modal');
-function openModal(html){ modal.innerHTML=html; overlay.classList.add('show'); document.body.style.overflow='hidden'; }
-function closeModal(){ overlay.classList.remove('show'); document.body.style.overflow=''; }
+/* ---------- auth ---------- */
+let pendingAfterAuth=null;
+function openAuth(tab='login', after=null){
+  pendingAfterAuth=after;
+  const isLogin=tab==='login';
+  openModal(`
+    <div class="modal-head"><h3>${isLogin?'התחברות':'הרשמה כהורה'}</h3><button class="x" data-close>&times;</button></div>
+    <div class="modal-body">
+      <div class="filters" style="margin:0 0 1.2rem">
+        <span class="chip ${isLogin?'active':''}" data-auth="login">התחברות</span>
+        <span class="chip ${!isLogin?'active':''}" data-auth="signup">הרשמה</span>
+      </div>
+      <form id="auth-form">
+        ${isLogin?'':`
+        <div class="form-row"><label>שם מלא *</label><input id="a-name" placeholder="שם פרטי ומשפחה"></div>
+        <div class="form-row"><label>טלפון *</label><input id="a-phone" inputmode="tel" placeholder="05X-XXXXXXX"></div>`}
+        <div class="form-row"><label>אימייל *</label><input id="a-email" placeholder="name@email.com"></div>
+        <div class="form-row"><label>סיסמה *</label><input id="a-pass" type="password" placeholder="לפחות 4 תווים"></div>
+        <button type="submit" class="btn btn-primary btn-block">${isLogin?'כניסה':'יצירת חשבון'}</button>
+      </form>
+      <p class="meta center" style="margin-top:.8rem">רוצים לעבוד כשמרטף/ית? <a href="#become" data-close style="color:var(--primary);font-weight:700">הצטרפו כאן</a></p>
+    </div>`);
+  $$('[data-auth]').forEach(c=>c.addEventListener('click',()=>openAuth(c.dataset.auth, pendingAfterAuth)));
+  $('#auth-form').addEventListener('submit',e=>{
+    e.preventDefault(); clearErrs();
+    const email=$('#a-email').value.trim().toLowerCase(), pass=$('#a-pass').value;
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){markErr($('#a-email'),'אימייל לא תקין');return;}
+    if(pass.length<4){markErr($('#a-pass'),'סיסמה קצרה מדי');return;}
+    if(isLogin){
+      const u=GS.findUserByEmail(email);
+      if(!u||u.pass!==pass){markErr($('#a-pass'),'אימייל או סיסמה שגויים');return;}
+      GS.login(u.id);
+    } else {
+      const name=$('#a-name').value.trim(), phone=$('#a-phone').value.trim();
+      if(name.length<2){markErr($('#a-name'),'נא להזין שם');return;}
+      if(!/^0\d{1,2}-?\d{7}$/.test(phone.replace(/\s/g,''))){markErr($('#a-phone'),'טלפון לא תקין');return;}
+      if(GS.findUserByEmail(email)){markErr($('#a-email'),'האימייל כבר רשום');return;}
+      const u=GS.addUser({name,email,phone,pass,role:'parent'});
+      GS.login(u.id);
+    }
+    renderNav(); closeModal(); toast('התחברת בהצלחה 👋');
+    const cb=pendingAfterAuth; pendingAfterAuth=null; if(cb) cb();
+  });
+}
 
-/* ---- sitter profile + booking ---- */
+function renderNav(){
+  const area=$('#auth-area'); if(!area) return;
+  const u=GS.currentUser();
+  if(!u){
+    area.innerHTML=`<a href="#" class="btn btn-ghost btn-sm" id="login-btn">התחברות</a>`;
+    $('#login-btn').addEventListener('click',e=>{e.preventDefault();openAuth('login');});
+  } else {
+    area.innerHTML=`<a href="#" class="btn btn-ghost btn-sm" id="acct-btn">
+      <span class="av" style="width:24px;height:24px;border-radius:50%;display:inline-grid;place-items:center;background:${avatarColor(u.name)};color:#fff;font-size:.7rem;font-weight:800">${initials(u.name)}</span>
+      ${u.name.split(' ')[0]}</a>`;
+    $('#acct-btn').addEventListener('click',e=>{e.preventDefault();openAccount();});
+  }
+}
+
+/* ---------- profile + booking ---------- */
+function requireParent(after){
+  const u=GS.currentUser();
+  if(u&&u.role==='parent'){after(u);return;}
+  if(u&&u.role==='sitter'){toast('התחברת כשמרטף/ית. להזמנה יש להתחבר כהורה');return;}
+  openAuth('login',()=>{const cu=GS.currentUser();if(cu&&cu.role==='parent')after(cu);});
+}
+
 function openProfile(id){
-  const s=SITTERS.find(x=>x.id===id); if(!s)return;
-  const stars='★'.repeat(Math.round(s.rating))+'☆'.repeat(5-Math.round(s.rating));
+  const s=GS.getSitter(id); if(!s)return;
+  const revs=GS.reviews(id);
   openModal(`
     <div class="modal-head"><h3>פרופיל שמרטף/ית</h3><button class="x" data-close>&times;</button></div>
     <div class="modal-body">
@@ -98,7 +134,7 @@ function openProfile(id){
         <div>
           <div class="nm" style="font-size:1.3rem;font-weight:900">${s.name} <span class="vbadge">✔</span></div>
           <div class="meta">גיל ${s.age} · ${s.city} · ${s.dist} ק"מ ממך</div>
-          <div class="rating"><span class="stars">${stars}</span> ${s.rating} (${s.reviews} ביקורות)</div>
+          <div class="rating"><span class="stars">${starsStr(s.rating)}</span> ${s.rating} (${s.reviews} ביקורות)</div>
         </div>
       </div>
       <p class="bio">${s.bio}</p>
@@ -109,7 +145,9 @@ function openProfile(id){
         <div class="k"><small>התמחות</small><b>${s.tags.join(', ')}</b></div>
         <div class="k"><small>זמן הגעה משוער</small><b>~${Math.round(s.dist*5+8)} דק'</b></div>
       </div>
-      <h4 style="margin:.4rem 0 .6rem;font-weight:900">בקשת הזמנה</h4>
+      ${revs.length?`<h4 style="margin:.6rem 0 .4rem;font-weight:900">ביקורות אחרונות</h4>
+        ${revs.slice(-3).reverse().map(r=>`<div class="k" style="margin-bottom:.5rem"><div class="stars">${starsStr(r.rating)}</div><div>${r.text||''}</div><small style="color:var(--muted)">— ${r.author}</small></div>`).join('')}`:''}
+      <h4 style="margin:.6rem 0 .6rem;font-weight:900">בקשת הזמנה</h4>
       <form id="book-form">
         <div class="form-2">
           <div class="form-row"><label>תאריך</label><input type="date" id="b-date" required></div>
@@ -117,11 +155,9 @@ function openProfile(id){
         </div>
         <div class="form-2">
           <div class="form-row"><label>משך (שעות)</label>
-            <select id="b-hours"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option></select>
-          </div>
+            <select id="b-hours"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option></select></div>
           <div class="form-row"><label>מספר ילדים</label>
-            <select id="b-kids"><option>1</option><option selected>2</option><option>3</option><option>4+</option></select>
-          </div>
+            <select id="b-kids"><option>1</option><option selected>2</option><option>3</option><option>4+</option></select></div>
         </div>
         <div class="form-row"><label>הערות (אלרגיות, שגרת שינה...)</label><textarea id="b-notes" rows="2" placeholder="לדוגמה: אלרגיה לאגוזים, שינה ב-20:00"></textarea></div>
         <div class="kv" style="grid-template-columns:1fr"><div class="k" id="b-summary"></div></div>
@@ -130,27 +166,113 @@ function openProfile(id){
       </form>
     </div>`);
   const sum=$('#b-summary'), hours=$('#b-hours');
-  const updateSum=()=>{const h=parseInt(hours.value);sum.innerHTML=`<small>הערכת עלות</small><b>₪${s.rate*h} · ${h} שעות × ₪${s.rate}</b>`;};
-  updateSum(); hours.addEventListener('change',updateSum);
+  const upd=()=>{const h=parseInt(hours.value);sum.innerHTML=`<small>הערכת עלות</small><b>₪${s.rate*h} · ${h} שעות × ₪${s.rate}</b>`;};
+  upd(); hours.addEventListener('change',upd);
   $('#book-form').addEventListener('submit',e=>{
     e.preventDefault();
-    openModal(`<div class="modal-head"><h3>הבקשה נשלחה</h3><button class="x" data-close>&times;</button></div>
-      <div class="modal-body"><div class="success">
-        <div class="big-ck">✓</div>
-        <h3 style="font-weight:900;font-size:1.3rem">הבקשה נשלחה ל${s.name}!</h3>
-        <p class="meta" style="margin:.6rem 0 1rem">תקבלו התראה ברגע שהבקשה תאושר. תוכלו לעקוב אחר ההגעה במפה החיה ולשתף מיקום עם איש קשר לחירום.</p>
-        <button class="btn btn-primary btn-block" data-close>מצוין, סגרו</button>
-      </div></div>`);
-    toast('בקשת ההזמנה נשלחה ✔');
+    const date=$('#b-date').value, time=$('#b-time').value;
+    if(!date||!time){toast('נא לבחור תאריך ושעה');return;}
+    const draft={sitterId:s.id,date,time,hours:+hours.value,kids:$('#b-kids').value,notes:$('#b-notes').value.trim(),rate:s.rate,total:s.rate*(+hours.value)};
+    requireParent(u=>{
+      const b=GS.addBooking(Object.assign({parentId:u.id,parentName:u.name,sitterName:s.name},draft));
+      openModal(`<div class="modal-head"><h3>הבקשה נשלחה</h3><button class="x" data-close>&times;</button></div>
+        <div class="modal-body"><div class="success">
+          <div class="big-ck">✓</div>
+          <h3 style="font-weight:900;font-size:1.3rem">הבקשה נשלחה ל${s.name}!</h3>
+          <p class="meta" style="margin:.6rem 0 1rem">תקבלו התראה כשהבקשה תאושר. אפשר לעקוב אחר הסטטוס וההגעה ב"החשבון שלי".</p>
+          <div class="wizard-foot"><button class="btn btn-ghost" data-close>סגירה</button><button class="btn btn-primary" id="goto-bookings">החשבון שלי</button></div>
+        </div></div>`);
+      $('#goto-bookings').addEventListener('click',openAccount);
+      toast('בקשת ההזמנה נשלחה ✔');
+    });
   });
 }
 
-/* ---- become-a-sitter wizard ---- */
+/* ---------- account dashboards ---------- */
+function bookingRow(b, role){
+  const st=STATUS[b.status]||STATUS.pending;
+  const who = role==='parent' ? b.sitterName : b.parentName;
+  let actions='';
+  if(role==='parent'){
+    if(b.status==='pending'||b.status==='confirmed') actions+=`<button class="btn btn-ghost btn-sm" data-act="cancel" data-id="${b.id}">ביטול</button>`;
+    if(b.status==='confirmed') actions+=`<button class="btn btn-safe btn-sm" data-act="complete" data-id="${b.id}">סיום ותשלום</button>`;
+    if(b.status==='completed'&&!b.rated) actions+=`<button class="btn btn-primary btn-sm" data-act="rate" data-id="${b.id}">דרגו</button>`;
+  } else {
+    if(b.status==='pending'){actions+=`<button class="btn btn-safe btn-sm" data-act="accept" data-id="${b.id}">אישור</button><button class="btn btn-ghost btn-sm" data-act="decline" data-id="${b.id}">דחייה</button>`;}
+    if(b.status==='confirmed') actions+=`<button class="btn btn-primary btn-sm" data-act="finish" data-id="${b.id}">סמן כהושלם</button>`;
+  }
+  return `<div class="k" style="margin-bottom:.6rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div><b>${who}</b><br><small style="color:var(--muted)">${b.date} · ${b.time} · ${b.hours} שעות · ${b.kids} ילדים</small></div>
+      <span style="font-weight:800;color:${st.color}">${st.label}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;flex-wrap:wrap;gap:8px">
+      <b style="color:var(--primary)">₪${b.total}</b>
+      <div style="display:flex;gap:.4rem">${actions}</div>
+    </div>
+    ${b.notes?`<small style="color:var(--muted);display:block;margin-top:.4rem">📝 ${b.notes}</small>`:''}
+  </div>`;
+}
+
+function openAccount(){
+  const u=GS.currentUser(); if(!u){openAuth('login');return;}
+  const isSitter=u.role==='sitter';
+  const list=isSitter?GS.bookingsForSitter(u.sitterId):GS.bookingsForParent(u.id);
+  const rows=list.length?list.map(b=>bookingRow(b,u.role)).join(''):`<div class="empty">אין הזמנות עדיין.</div>`;
+  openModal(`
+    <div class="modal-head">
+      <h3>👋 ${u.name}</h3>
+      <div style="display:flex;gap:.5rem;align-items:center"><button class="btn btn-ghost btn-sm" id="logout-btn">יציאה</button><button class="x" data-close>&times;</button></div>
+    </div>
+    <div class="modal-body">
+      <p class="meta" style="margin-bottom:1rem">${isSitter?'הבקשות שהתקבלו עבורך:':'ההזמנות שלך:'} </p>
+      <div id="acct-list">${rows}</div>
+      ${isSitter?'':`<button class="btn btn-primary btn-block" data-close style="margin-top:.6rem" onclick="document.querySelector('#sitters').scrollIntoView({behavior:'smooth'})">הזמנת שמרטף/ית חדש/ה</button>`}
+    </div>`);
+  $('#logout-btn').addEventListener('click',()=>{GS.logout();renderNav();closeModal();toast('התנתקת');});
+  $('#acct-list').addEventListener('click',e=>{
+    const btn=e.target.closest('[data-act]'); if(!btn)return;
+    const id=btn.dataset.id, act=btn.dataset.act;
+    if(act==='cancel'||act==='decline') GS.updateBooking(id,{status:'cancelled'});
+    if(act==='accept') GS.updateBooking(id,{status:'confirmed'});
+    if(act==='complete'||act==='finish') GS.updateBooking(id,{status:'completed'});
+    if(act==='rate'){openRate(id);return;}
+    if(act==='accept') toast('ההזמנה אושרה ✔');
+    if(act==='complete'||act==='finish') toast('ההזמנה הושלמה ✔');
+    openAccount(); // refresh
+  });
+}
+
+function openRate(bookingId){
+  const b=GS.bookings().find(x=>x.id===bookingId); if(!b)return;
+  let chosen=5;
+  openModal(`
+    <div class="modal-head"><h3>דרגו את ${b.sitterName}</h3><button class="x" data-close>&times;</button></div>
+    <div class="modal-body">
+      <div id="rate-stars" style="font-size:2.4rem;text-align:center;color:#f5a524;cursor:pointer;letter-spacing:.2rem">★★★★★</div>
+      <div class="form-row"><label>מה דעתכם? (אופציונלי)</label><textarea id="rate-text" rows="3" placeholder="ספרו להורים הבאים על החוויה"></textarea></div>
+      <button class="btn btn-primary btn-block" id="rate-submit">שליחת דירוג</button>
+    </div>`);
+  const wrap=$('#rate-stars');
+  const draw=n=>wrap.textContent='★'.repeat(n)+'☆'.repeat(5-n);
+  wrap.addEventListener('mousemove',e=>{const i=Math.ceil((e.offsetX/wrap.offsetWidth)*5);draw(Math.max(1,Math.min(5,6-i)));});
+  wrap.addEventListener('click',e=>{const i=Math.ceil((e.offsetX/wrap.offsetWidth)*5);chosen=Math.max(1,Math.min(5,6-i));draw(chosen);});
+  $('#rate-submit').addEventListener('click',()=>{
+    const u=GS.currentUser();
+    GS.addReview({sitterId:b.sitterId,rating:chosen,text:$('#rate-text').value.trim(),author:u?u.name:'הורה'});
+    GS.updateBooking(bookingId,{rated:true});
+    renderSitters(); closeModal(); toast('תודה על הדירוג! ⭐');
+  });
+}
+
+/* ---------- become-a-sitter wizard ---------- */
 const wizState={step:0,data:{},police:false};
 const WIZ_STEPS=['פרטים אישיים','ניסיון והכשרה','בטיחות ובדיקות','סיום'];
+function field(id){return $('#'+id);}
+function markErr(el,msg){el.classList.add('err');if(!el.nextElementSibling||!el.nextElementSibling.classList.contains('err-msg')){const s=document.createElement('div');s.className='err-msg';s.textContent=msg;el.after(s);}}
+function clearErrs(){$$('.err').forEach(e=>e.classList.remove('err'));$$('.err-msg').forEach(e=>e.remove());}
 
-function openWizard(){ wizState.step=0; wizState.data={}; wizState.police=false; renderWizard(); }
-
+function openWizard(){wizState.step=0;wizState.data={};wizState.police=false;renderWizard();}
 function renderWizard(){
   const bar=WIZ_STEPS.map((_,i)=>`<div class="sb ${i<=wizState.step?'on':''}"></div>`).join('');
   let body='';
@@ -159,58 +281,41 @@ function renderWizard(){
       <div class="step-label">שלב 1 מתוך 4 · ${WIZ_STEPS[0]}</div>
       <div class="form-2">
         <div class="form-row"><label>שם מלא *</label><input id="w-name" value="${wizState.data.name||''}" placeholder="שם פרטי ומשפחה"></div>
-        <div class="form-row"><label>תעודת זהות *</label><input id="w-id" value="${wizState.data.id||''}" inputmode="numeric" placeholder="9 ספרות"></div>
+        <div class="form-row"><label>תעודת זהות *</label><input id="w-id" value="${wizState.data.idnum||''}" inputmode="numeric" placeholder="9 ספרות"></div>
       </div>
       <div class="form-2">
         <div class="form-row"><label>גיל *</label><input id="w-age" value="${wizState.data.age||''}" inputmode="numeric" placeholder="18+"></div>
         <div class="form-row"><label>טלפון *</label><input id="w-phone" value="${wizState.data.phone||''}" inputmode="tel" placeholder="05X-XXXXXXX"></div>
       </div>
-      <div class="form-row"><label>אימייל *</label><input id="w-email" value="${wizState.data.email||''}" placeholder="name@email.com"></div>
+      <div class="form-2">
+        <div class="form-row"><label>אימייל *</label><input id="w-email" value="${wizState.data.email||''}" placeholder="name@email.com"></div>
+        <div class="form-row"><label>סיסמה *</label><input id="w-pass" type="password" value="${wizState.data.pass||''}" placeholder="לפחות 4 תווים"></div>
+      </div>
       <div class="form-row"><label>עיר מגורים *</label><input id="w-city" value="${wizState.data.city||''}" placeholder="עיר"></div>`;
   } else if(wizState.step===1){
     body=`
       <div class="step-label">שלב 2 מתוך 4 · ${WIZ_STEPS[1]}</div>
       <div class="form-2">
         <div class="form-row"><label>שנות ניסיון *</label><input id="w-exp" value="${wizState.data.exp||''}" inputmode="numeric" placeholder="לדוגמה: 3"></div>
-        <div class="form-row"><label>תעריף מבוקש לשעה (₪) *</label><input id="w-rate" value="${wizState.data.rate||''}" inputmode="numeric" placeholder="לדוגמה: 65"></div>
+        <div class="form-row"><label>תעריף לשעה (₪) *</label><input id="w-rate" value="${wizState.data.rate||''}" inputmode="numeric" placeholder="לדוגמה: 65"></div>
       </div>
-      <div class="form-row"><label>טווחי גיל שתשמחו לטפל בהם *</label>
+      <div class="form-row"><label>טווח גיל מועדף *</label>
         <select id="w-ages"><option value="">בחרו...</option><option>גילאי 0-3</option><option>גילאי 3-8</option><option>גילאי 6-12</option><option>כל הגילאים</option></select></div>
-      <div class="form-row"><label>הכשרות והסמכות (אופציונלי)</label>
-        <textarea id="w-cert" rows="2" placeholder="עזרה ראשונה, חינוך, סיעוד, חוגים...">${wizState.data.cert||''}</textarea></div>
-      <div class="form-row"><label>ספרו על עצמכם (יוצג בפרופיל) *</label>
-        <textarea id="w-bio" rows="3" placeholder="כמה משפטים שיגרמו להורים לבחור בכם">${wizState.data.bio||''}</textarea></div>`;
+      <div class="form-row"><label>הכשרות והסמכות (אופציונלי)</label><textarea id="w-cert" rows="2" placeholder="עזרה ראשונה, חינוך, סיעוד, חוגים...">${wizState.data.cert||''}</textarea></div>
+      <div class="form-row"><label>ספרו על עצמכם (יוצג בפרופיל) *</label><textarea id="w-bio" rows="3" placeholder="כמה משפטים שיגרמו להורים לבחור בכם">${wizState.data.bio||''}</textarea></div>`;
   } else if(wizState.step===2){
     body=`
       <div class="step-label">שלב 3 מתוך 4 · ${WIZ_STEPS[2]}</div>
-      <p class="meta" style="margin-bottom:1rem">הבטיחות של הילדים היא הדבר החשוב ביותר. כדי להתקבל כשמרטף/ית ב-GetSitter חובה לעבור את כל הבדיקות הבאות.</p>
+      <p class="meta" style="margin-bottom:1rem">הבטיחות של הילדים היא הדבר החשוב ביותר. כדי להתקבל חובה לעבור את כל הבדיקות הבאות.</p>
       <label class="consent"><input type="checkbox" id="c-bg"><span><b>הסכמה לבדיקת רקע פלילי.</b> אני מאשר/ת ל-GetSitter לבצע בדיקת רקע פלילי מקיפה דרך גורם מוסמך.</span></label>
-      <label class="consent"><input type="checkbox" id="c-police"><span><b>הצהרה על היעדר עבר פלילי.</b> אני מצהיר/ה שאין לי הרשעות פליליות, ובפרט לא בעבירות מין או אלימות, ומתחייב/ת להציג תעודת יושר.</span></label>
+      <label class="consent"><input type="checkbox" id="c-police"><span><b>הצהרה על היעדר עבר פלילי.</b> אני מצהיר/ה שאין לי הרשעות פליליות, ובפרט לא בעבירות מין או אלימות.</span></label>
       <label class="consent"><input type="checkbox" id="c-id"><span><b>אימות זהות.</b> אני מסכים/ה לאימות זהות ביומטרי מול תעודה מזהה רשמית.</span></label>
       <label class="consent"><input type="checkbox" id="c-terms"><span><b>תקנון ומדיניות.</b> קראתי ואני מסכים/ה לתקנון, למדיניות הפרטיות ולכללי ההתנהגות.</span></label>
       <div class="form-row" style="margin-top:.4rem"><label>העלאת תעודת יושר ממשטרת ישראל *</label>
         <div class="upload ${wizState.police?'done':''}" id="w-upload">${wizState.police?'✔ תעודת יושר הועלתה':'📎 לחצו להעלאת קובץ (PDF / תמונה)'}</div></div>`;
   } else {
-    const d=wizState.data;
-    openModal(`
-      <div class="modal-head"><h3>הבקשה התקבלה</h3><button class="x" data-close>&times;</button></div>
-      <div class="modal-body"><div class="success">
-        <div class="big-ck">✓</div>
-        <h3 style="font-weight:900;font-size:1.35rem">תודה ${d.name||''}! הבקשה שלך נקלטה</h3>
-        <p class="meta" style="margin:.7rem auto 1.2rem;max-width:420px">
-          השלב הבא: צוות הבטיחות שלנו יבצע בדיקת רקע פלילי, יאמת את תעודת היושר וזהותך, ויזמן אותך לראיון אישי קצר.
-          התהליך נמשך בדרך כלל 3–5 ימי עסקים. נעדכן אותך במייל ובסמס.
-        </p>
-        <div class="kv" style="text-align:right">
-          <div class="k"><small>סטטוס</small><b style="color:var(--warn)">⏳ ממתין לבדיקת רקע</b></div>
-          <div class="k"><small>מספר בקשה</small><b>GS-${Math.floor(100000+Math.random()*900000)}</b></div>
-        </div>
-        <button class="btn btn-primary btn-block" data-close>סיום</button>
-      </div></div>`);
-    toast('בקשת ההצטרפות נשלחה ✔');
-    return;
+    finishWizard(); return;
   }
-
   openModal(`
     <div class="modal-head"><h3>הצטרפות כשמרטף/ית</h3><button class="x" data-close>&times;</button></div>
     <div class="modal-body">
@@ -221,89 +326,93 @@ function renderWizard(){
         <button class="btn btn-primary" id="w-next">${wizState.step===2?'שליחת הבקשה':'המשך'}</button>
       </div>
     </div>`);
-
-  // upload mock
   const up=$('#w-upload');
   if(up) up.addEventListener('click',()=>{wizState.police=true;up.classList.add('done');up.textContent='✔ תעודת יושר הועלתה';});
   $('#w-back')?.addEventListener('click',()=>{wizState.step--;renderWizard();});
-  $('#w-next')?.addEventListener('click',()=>{ if(validateStep()){wizState.step++;renderWizard();} });
+  $('#w-next')?.addEventListener('click',()=>{if(validateStep()){wizState.step++;renderWizard();}});
 }
-
-function field(id){return $('#'+id);}
-function markErr(el,msg){
-  el.classList.add('err');
-  if(!el.nextElementSibling||!el.nextElementSibling.classList.contains('err-msg')){
-    const s=document.createElement('div');s.className='err-msg';s.textContent=msg;el.after(s);
-  }
-}
-function clearErrs(){$$('.err').forEach(e=>e.classList.remove('err'));$$('.err-msg').forEach(e=>e.remove());}
 
 function validateStep(){
   clearErrs(); let ok=true;
-  const req=(id,test,msg)=>{const el=field(id);if(!el)return;const v=el.value.trim();if(!test(v)){markErr(el,msg);ok=false;}else{wizState.data[id.replace('w-','')]=v;}};
+  const d=wizState.data;
+  const req=(id,key,test,msg)=>{const el=field(id);if(!el)return;const v=el.value.trim();if(!test(v)){markErr(el,msg);ok=false;}else{d[key]=v;}};
   if(wizState.step===0){
-    req('w-name',v=>v.length>1,'נא להזין שם מלא');
-    req('w-id',v=>/^\d{9}$/.test(v),'תעודת זהות = 9 ספרות');
-    req('w-age',v=>+v>=18 && +v<=80,'הגיל המינימלי הוא 18');
-    req('w-phone',v=>/^0\d{1,2}-?\d{7}$/.test(v.replace(/\s/g,'')),'מספר טלפון לא תקין');
-    req('w-email',v=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v),'אימייל לא תקין');
-    req('w-city',v=>v.length>1,'נא להזין עיר');
+    req('w-name','name',v=>v.length>1,'נא להזין שם מלא');
+    req('w-id','idnum',v=>/^\d{9}$/.test(v),'תעודת זהות = 9 ספרות');
+    req('w-age','age',v=>+v>=18&&+v<=80,'הגיל המינימלי הוא 18');
+    req('w-phone','phone',v=>/^0\d{1,2}-?\d{7}$/.test(v.replace(/\s/g,'')),'מספר טלפון לא תקין');
+    req('w-email','email',v=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v),'אימייל לא תקין');
+    req('w-pass','pass',v=>v.length>=4,'סיסמה קצרה מדי');
+    req('w-city','city',v=>v.length>1,'נא להזין עיר');
+    if(ok&&GS.findUserByEmail(d.email)){markErr(field('w-email'),'האימייל כבר רשום');ok=false;}
   } else if(wizState.step===1){
-    req('w-exp',v=>v!==''&&+v>=0,'נא להזין שנות ניסיון');
-    req('w-rate',v=>+v>=30,'תעריף מינימלי ₪30');
-    req('w-ages',v=>v!=='','נא לבחור טווח גיל');
-    req('w-bio',v=>v.length>=15,'נא לכתוב לפחות משפט');
-    const c=field('w-cert'); if(c) wizState.data.cert=c.value;
+    req('w-exp','exp',v=>v!==''&&+v>=0,'נא להזין שנות ניסיון');
+    req('w-rate','rate',v=>+v>=30,'תעריף מינימלי ₪30');
+    req('w-ages','ages',v=>v!=='','נא לבחור טווח גיל');
+    req('w-bio','bio',v=>v.length>=15,'נא לכתוב לפחות משפט');
+    const c=field('w-cert'); if(c) d.cert=c.value;
   } else if(wizState.step===2){
-    ['c-bg','c-police','c-id','c-terms'].forEach(id=>{
-      const el=field(id); if(el && !el.checked){el.closest('.consent').style.borderColor='var(--accent)';ok=false;}
-      else if(el) el.closest('.consent').style.borderColor='';
-    });
+    ['c-bg','c-police','c-id','c-terms'].forEach(id=>{const el=field(id);if(el&&!el.checked){el.closest('.consent').style.borderColor='var(--accent)';ok=false;}else if(el)el.closest('.consent').style.borderColor='';});
     if(!wizState.police){const u=$('#w-upload');if(u){u.style.borderColor='var(--accent)';u.style.color='var(--accent)';}ok=false;}
     if(!ok) toast('יש לאשר את כל הסעיפים ולהעלות תעודת יושר');
   }
   return ok;
 }
 
-/* ---- toast ---- */
-let toastT;
-function toast(msg){
-  let t=$('#toast'); t.innerHTML='✔ '+msg.replace('✔','').trim(); t.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),3200);
+function finishWizard(){
+  const d=wizState.data;
+  // create sitter profile + linked user account, then log in
+  const sitterId=GS.uid('s_');
+  GS.saveSitter({
+    id:sitterId,name:d.name,age:+d.age,city:d.city,dist:+(Math.random()*4+0.5).toFixed(1),
+    rating:5.0,reviews:0,rate:+d.rate,exp:+d.exp,
+    tags:[d.ages,...(d.cert&&/עזרה ראשונה/.test(d.cert)?['עזרה ראשונה']:[])].filter(Boolean),
+    bio:d.bio,verif:['רקע פלילי','תעודת יושר','אימות זהות'],pending:true,
+  });
+  const user=GS.addUser({name:d.name,email:d.email,phone:d.phone,pass:d.pass,role:'sitter',sitterId});
+  GS.login(user.id); renderNav(); renderSitters();
+  openModal(`
+    <div class="modal-head"><h3>הבקשה התקבלה</h3><button class="x" data-close>&times;</button></div>
+    <div class="modal-body"><div class="success">
+      <div class="big-ck">✓</div>
+      <h3 style="font-weight:900;font-size:1.35rem">תודה ${d.name}! נרשמת בהצלחה</h3>
+      <p class="meta" style="margin:.7rem auto 1.2rem;max-width:420px">
+        השלב הבא: צוות הבטיחות יבצע בדיקת רקע פלילי, יאמת את תעודת היושר וזהותך, ויזמן אותך לראיון אישי קצר.
+        התהליך נמשך בדרך כלל 3–5 ימי עסקים. בינתיים החשבון שלך פעיל ותוכל/י לראות בקשות הזמנה ב"החשבון שלי".
+      </p>
+      <div class="kv" style="text-align:right">
+        <div class="k"><small>סטטוס</small><b style="color:var(--warn)">⏳ ממתין לבדיקת רקע</b></div>
+        <div class="k"><small>מספר בקשה</small><b>GS-${Math.floor(100000+Math.random()*900000)}</b></div>
+      </div>
+      <button class="btn btn-primary btn-block" id="goto-acct">למעבר לחשבון שלי</button>
+    </div></div>`);
+  $('#goto-acct').addEventListener('click',openAccount);
+  toast('בקשת ההצטרפות נשלחה ✔');
 }
 
-/* ---- event wiring ---- */
+/* ---------- wiring ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
-  renderSitters();
+  renderSitters(); renderNav();
 
-  // search
   $('#search-form')?.addEventListener('submit',e=>{
     e.preventDefault(); renderSitters();
-    document.querySelector('#sitters').scrollIntoView({behavior:'smooth'});
-    toast('מציג שמרטפים זמינים באזורך');
+    $('#sitters').scrollIntoView({behavior:'smooth'}); toast('מציג שמרטפים זמינים באזורך');
   });
-
-  // filter chips
-  $$('.chip').forEach(c=>c.addEventListener('click',()=>{
-    $$('.chip').forEach(x=>x.classList.remove('active'));
+  $$('.chip[data-filter]').forEach(c=>c.addEventListener('click',()=>{
+    $$('.chip[data-filter]').forEach(x=>x.classList.remove('active'));
     c.classList.add('active'); activeFilter=c.dataset.filter; renderSitters();
   }));
 
-  // delegate book + close + open wizard
   document.addEventListener('click',e=>{
-    const book=e.target.closest('[data-book]');
-    if(book){openProfile(+book.dataset.book);return;}
-    const card=e.target.closest('.sitter');
-    if(card && !e.target.closest('[data-book]')){openProfile(+card.dataset.id);return;}
-    if(e.target.closest('[data-close]')||e.target===overlay){closeModal();return;}
+    const book=e.target.closest('[data-book]'); if(book){openProfile(book.dataset.book);return;}
+    const card=e.target.closest('.sitter'); if(card&&!e.target.closest('[data-book]')){openProfile(card.dataset.id);return;}
+    if(e.target.closest('[data-close]')||e.target===overlay()){closeModal();return;}
     if(e.target.closest('[data-wizard]')){openWizard();return;}
+    if(e.target.closest('[data-login]')){openAuth('login');return;}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
-  // faq
   $$('.qa button').forEach(b=>b.addEventListener('click',()=>b.closest('.qa').classList.toggle('open')));
-
-  // mobile nav
   $('#burger')?.addEventListener('click',()=>$('#nav-links').classList.toggle('open'));
   $$('#nav-links a').forEach(a=>a.addEventListener('click',()=>$('#nav-links').classList.remove('open')));
 });
